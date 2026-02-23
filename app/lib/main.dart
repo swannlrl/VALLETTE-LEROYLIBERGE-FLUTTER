@@ -6,17 +6,30 @@ import 'package:formation_flutter/screens/homepage/homepage_screen.dart';
 import 'package:formation_flutter/screens/product/product_page.dart';
 import 'package:go_router/go_router.dart';
 
+// --- AJOUTE CES DEUX IMPORTS ICI ---
+import 'package:pocketbase/pocketbase.dart'; // Pour reconnaître RecordModel
+import 'package:formation_flutter/screens/product/rappel_detail_page.dart'; // Ton nouvel écran
+
 void main() {
   runApp(const MyApp());
 }
 
 GoRouter _router = GoRouter(
   routes: [
-    GoRoute(path: '/', builder: (_, _) => HomePage()),
+    GoRoute(path: '/', builder: (_, _) => const HomePage()),
     GoRoute(
       path: '/product',
       builder: (_, GoRouterState state) =>
           ProductPage(barcode: state.extra as String),
+    ),
+    // --- AJOUTE CETTE ROUTE ICI (Consigne 5) ---
+    GoRoute(
+      path: '/rappel-detail',
+      builder: (_, GoRouterState state) {
+        // On récupère l'objet RecordModel qu'on a passé dans le ProductPage
+        final record = state.extra as RecordModel;
+        return RappelDetailPage(rappel: record);
+      },
     ),
   ],
 );

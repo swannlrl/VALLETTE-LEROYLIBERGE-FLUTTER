@@ -3,7 +3,7 @@ import 'package:formation_flutter/l10n/app_localizations.dart';
 import 'package:formation_flutter/res/app_icons.dart';
 import 'package:formation_flutter/screens/homepage/homepage_empty.dart';
 import 'package:go_router/go_router.dart';
-import 'package:formation_flutter/api/pocketbase_api.dart';
+
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -27,16 +27,11 @@ class HomePage extends StatelessWidget {
         ],
       ),
       body: HomePageEmpty(onScan: () => _onScanButtonPressed(context)),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          await PocketBaseAPI().syncDatabase();
-        },
-        child: const Icon(Icons.download),
-      ),
+    
     );
   }
 
   void _onScanButtonPressed(BuildContext context) {
-    context.push('/product', extra: '5000159484695');
+    context.push('/product', extra: '3289664183404');
   }
 }

@@ -35,7 +35,7 @@ class ProductPage extends StatelessWidget {
                       return switch (notifier.state) {
                         ProductFetcherLoading() => const ProductPageEmpty(),
                         // Si erreur 500, on affiche l'erreur en haut, mais on ne bloque pas le reste
-                        ProductFetcherError(error: var err) => ProductPageError(error: err),
+                        ProductFetcherError(error: var err) => const ProductPageBody(),
                         ProductFetcherSuccess() => const ProductPageBody(),
                       };
                     },

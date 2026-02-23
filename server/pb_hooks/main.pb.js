@@ -1,32 +1,43 @@
-// Variable de configuration pour la traçabilité
+// --- CONFIGURATION ET MONITORING ---
 const CONFIG = {
     source: "https://codelabs.formation-flutter.fr/assets/rappels.json",
-    frequence: "2 fois par jour (00h00 & 12h00)",
-    derniere_init: new Date().toLocaleString('fr-FR')
+    planning: "2 fois par jour (00h00 et 12h00)", // Consigne X2
+    version: "1.0.0"
 };
 
-onAppAfterBootstrap((e) => {
-    // Récupération des statistiques réelles de ta base
-    const totalProduits = $app.dao().findRecordsByFilter("produits", "id != ''").length;
-    const totalCampagnes = $app.dao().findRecordsByFilter("campagnes", "id != ''").length;
+// Cet affichage se fera DIRECTEMENT dans ton terminal au lancement
+console.log("=================================================");
+console.log("🔍 MONITORING SYNC RAPPEL-PRODUIT");
+console.log("=================================================");
+console.log("📡 SOURCE DES DONNÉES : " + CONFIG.source);
+console.log("⏰ PLANNING DE MAJ    : " + CONFIG.planning);
+console.log("🚀 ÉTAT DU SYSTÈME    : PRÊT");
+console.log("=================================================");
 
-    console.log("=================================================");
-    console.log("🔍 MONITORING SYNC RAPPEL-PRODUIT");
-    console.log("=================================================");
-    console.log(`📡 SOURCE DES DONNÉES : ${CONFIG.source}`);
-    console.log(`⏰ PLANNING DE MAJ  : ${CONFIG.frequence}`);
-    console.log(`🚀 SERVEUR LANCÉ LE : ${CONFIG.derniere_init}`);
-    console.log("-------------------------------------------------");
-    console.log(`📦 ÉTAT DE LA BASE   :`);
-    console.log(`   - Produits enregistrés : ${totalProduits}`);
-    console.log(`   - Campagnes liées     : ${totalCampagnes}`);
-    console.log("=================================================");
-    console.log("✅ SYSTÈME PRÊT ET OPÉRATIONNEL");
-    console.log("=================================================");
-});
-
-// Ta tâche Cron reste inchangée pour assurer la mise à jour X2
+// --- TÂCHE AUTOMATIQUE (CRON) ---
+// Cette fonction respecte ta consigne de mise à jour 2 fois par jour
 cronAdd("sync_rappels", "0 0,12 * * *", () => {
-    console.log("🔄 " + new Date().toLocaleString() + " : Synchro automatique en cours...");
-    // ... ton code de synchronisation ...
+    const maintenant = new Date().toLocaleString('fr-FR');
+    console.log("🔄 [" + maintenant + "] Synchro automatique en cours...");
+
+    try {
+        const response = $http.send({ url: CONFIG.source, method: "GET" });
+        const data = response.json;
+
+        $app.dao().runInTransaction((dao) => {
+            data.forEach((item) => {
+                const gtin = item['gtin']?.toString();
+                if (!gtin || gtin === '0') return;
+
+                const collection = dao.findCollectionByNameOrId("produits");
+                const record = new Record(collection);
+                record.set("gtin", gtin);
+                record.set("lot", item['identification_produits'] || '');
+                dao.saveRecord(record);
+            });
+        });
+        console.log("✅ [" + maintenant + "] Mise à jour réussie.");
+    } catch (err) {
+        console.log("❌ [" + maintenant + "] Erreur : " + err);
+    }
 });

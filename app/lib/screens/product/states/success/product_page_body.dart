@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:formation_flutter/l10n/app_localizations.dart';
 import 'package:formation_flutter/model/product.dart';
+import 'package:formation_flutter/res/app_colors.dart';
 import 'package:formation_flutter/res/app_icons.dart';
 import 'package:formation_flutter/screens/product/product_fetcher.dart';
+import 'package:formation_flutter/screens/product/rappel_fetcher.dart';
+import 'package:formation_flutter/screens/product/rappel_banner.dart';
 import 'package:formation_flutter/screens/product/states/success/product_header.dart';
 import 'package:formation_flutter/screens/product/states/success/tabs/product_tab0.dart';
 import 'package:formation_flutter/screens/product/states/success/tabs/product_tab1.dart';
@@ -11,7 +14,8 @@ import 'package:formation_flutter/screens/product/states/success/tabs/product_ta
 import 'package:provider/provider.dart';
 
 class ProductPageBody extends StatefulWidget {
-  const ProductPageBody({super.key});
+  final Product product;
+  const ProductPageBody({super.key, required this.product});
 
   @override
   State<ProductPageBody> createState() => _ProductPageBodyState();
@@ -30,16 +34,29 @@ class _ProductPageBodyState extends State<ProductPageBody> {
   Widget build(BuildContext context) {
     final AppLocalizations localizations = AppLocalizations.of(context)!;
 
-    return Provider<Product>(
-      create: (_) =>
-          (context.read<ProductFetcher>().state as ProductFetcherSuccess)
-              .product,
+    return Provider<Product>.value(
+      value: widget.product,
       child: Column(
         children: [
           Expanded(
             child: CustomScrollView(
               slivers: <Widget>[
                 ProductPageHeader(),
+
+                // Bandeau rappel produit (juste avant les scores)
+                SliverToBoxAdapter(
+                  child: Consumer<RappelFetcher>(
+                    builder: (context, rappelNotifier, _) {
+                      if (rappelNotifier.state is RappelFound) {
+                        return RappelBanner(
+                          record: (rappelNotifier.state as RappelFound).record,
+                        );
+                      }
+                      return const SizedBox.shrink();
+                    },
+                  ),
+                ),
+
                 SliverPadding(
                   padding: EdgeInsetsDirectional.only(top: 10.0),
                   sliver: SliverFillRemaining(
@@ -52,6 +69,10 @@ class _ProductPageBodyState extends State<ProductPageBody> {
             ),
           ),
           BottomNavigationBar(
+            type: BottomNavigationBarType.fixed,
+            backgroundColor: AppColors.white,
+            selectedItemColor: AppColors.blue,
+            unselectedItemColor: AppColors.grey2,
             currentIndex: _tab.index,
             onTap: (int position) => setState(
               () => _tab = ProductDetailsCurrentTab.values[position],

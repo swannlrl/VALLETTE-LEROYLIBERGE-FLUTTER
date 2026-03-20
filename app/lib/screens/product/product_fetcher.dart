@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:formation_flutter/api/open_food_facts_api.dart';
+import 'package:formation_flutter/api/product_cache.dart';
 import 'package:formation_flutter/model/product.dart';
 
 class ProductFetcher extends ChangeNotifier {
@@ -12,15 +13,32 @@ class ProductFetcher extends ChangeNotifier {
   final String _barcode;
   ProductFetcherState _state;
 
+  Future<void> _loadFromCache() async {
+    final cached = await ProductCache.getCachedProduct(_barcode);
+    if (cached != null) {
+      _state = ProductFetcherSuccess(cached);
+      notifyListeners();
+    }
+  }
+
+  // Removed _parseScoreFromCache as it's no longer needed with full Product cache
+
   Future<void> loadProduct() async {
-    _state = ProductFetcherLoading();
-    notifyListeners();
+    if (_state is! ProductFetcherSuccess) {
+      _state = ProductFetcherLoading();
+      notifyListeners();
+      await _loadFromCache();
+    }
 
     try {
-      Product product = await OpenFoodFactsAPI().getProduct(_barcode);
-      _state = ProductFetcherSuccess(product);
+      final result = await OpenFoodFactsAPI().getProduct(_barcode);
+      await ProductCache.saveProduct(result.product, result.raw);
+      _state = ProductFetcherSuccess(result.product);
     } catch (error) {
-      _state = ProductFetcherError(error);
+      debugPrint('ProductFetcher Error for $_barcode: $error');
+      if (_state is! ProductFetcherSuccess) {
+        _state = ProductFetcherError(error);
+      }
     } finally {
       notifyListeners();
     }

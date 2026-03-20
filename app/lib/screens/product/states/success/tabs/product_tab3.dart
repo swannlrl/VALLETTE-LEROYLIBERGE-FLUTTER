@@ -10,7 +10,7 @@ class ProductTab3 extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Product product = context.read<Product>();
+    final Product product = context.watch<Product>();
     if (product.nutritionFacts == null) {
       return const SizedBox.shrink();
     }

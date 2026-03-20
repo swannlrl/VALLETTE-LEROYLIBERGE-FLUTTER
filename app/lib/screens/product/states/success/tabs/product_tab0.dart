@@ -37,7 +37,7 @@ class _Scores extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Product product = context.read<Product>();
+    final Product product = context.watch<Product>();
 
     return DefaultTextStyle(
       style: context.theme.altText,
@@ -105,6 +105,8 @@ class _Nutriscore extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final assetName = _findAssetName();
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -114,19 +116,22 @@ class _Nutriscore extends StatelessWidget {
           style: context.theme.title3,
         ),
         const SizedBox(height: 5.0),
-        Image.asset(_findAssetName(), height: 42.0),
+        if (assetName != null)
+          Image.asset(assetName, height: 42.0)
+        else
+          Text('Non renseigné', style: TextStyle(color: AppColors.grey2)),
       ],
     );
   }
 
-  String _findAssetName() {
+  String? _findAssetName() {
     return switch (nutriscore) {
       ProductNutriScore.A => 'res/drawables/nutriscore_a.png',
       ProductNutriScore.B => 'res/drawables/nutriscore_b.png',
       ProductNutriScore.C => 'res/drawables/nutriscore_c.png',
       ProductNutriScore.D => 'res/drawables/nutriscore_d.png',
       ProductNutriScore.E => 'res/drawables/nutriscore_e.png',
-      ProductNutriScore.unknown => 'TODO',
+      ProductNutriScore.unknown => null,
     };
   }
 }
@@ -243,7 +248,7 @@ class _Info extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final AppLocalizations localizations = AppLocalizations.of(context)!;
-    final Product product = context.read<Product>();
+    final Product product = context.watch<Product>();
 
     return Column(
       mainAxisSize: MainAxisSize.min,

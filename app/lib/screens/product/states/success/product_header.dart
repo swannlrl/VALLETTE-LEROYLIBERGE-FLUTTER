@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:formation_flutter/model/product.dart';
 import 'package:formation_flutter/res/app_theme_extension.dart';
 import 'package:provider/provider.dart';
@@ -49,7 +50,7 @@ class _ProductHeaderDelegate extends SliverPersistentHeaderDelegate {
     double shrinkOffset,
     bool overlapsContent,
   ) {
-    final Product product = context.read<Product>();
+    final Product product = context.watch<Product>();
     final double progress = (shrinkOffset / (maxHeight - minHeight)).clamp(
       0.0,
       1.0,
@@ -62,12 +63,16 @@ class _ProductHeaderDelegate extends SliverPersistentHeaderDelegate {
           start: 0.0,
           end: 0.0,
           height: maxHeight - shrinkOffset,
-          child: Image.network(
-            product.picture ?? '',
-            width: double.infinity,
-            fit: BoxFit.cover,
-            colorBlendMode: BlendMode.srcATop,
-          ),
+          child: product.picture != null && product.picture!.isNotEmpty
+              ? CachedNetworkImage(
+                  imageUrl: product.picture!,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                  colorBlendMode: BlendMode.srcATop,
+                  placeholder: (context, url) => const ColoredBox(color: Colors.white),
+                  errorWidget: (context, url, error) => const ColoredBox(color: Colors.white),
+                )
+              : const ColoredBox(color: Colors.white),
         ),
         PositionedDirectional(
           top: max(maxHeight - shrinkOffset - 16.0, 0.0),

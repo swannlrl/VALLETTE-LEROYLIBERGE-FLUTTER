@@ -1,24 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:formation_flutter/api/open_food_facts_api.dart';
-import 'package:formation_flutter/api/pocketbase_api.dart';
 import 'package:formation_flutter/api/product_cache.dart';
+import 'package:formation_flutter/api/pocketbase_api.dart';
 import 'package:formation_flutter/model/product.dart';
 import 'package:formation_flutter/res/app_colors.dart';
-import 'package:formation_flutter/res/app_icons.dart';
-import 'package:formation_flutter/res/app_vectorial_images.dart';
 import 'package:go_router/go_router.dart';
 
-class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+class FavoritesPage extends StatefulWidget {
+  const FavoritesPage({super.key});
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  State<FavoritesPage> createState() => _FavoritesPageState();
 }
 
-class _HomePageState extends State<HomePage> {
-  List<_HistoryItem>? _items;
+class _FavoritesPageState extends State<FavoritesPage> {
+  List<_FavItem>? _items;
   bool _isLoading = true;
   String? _error;
 
@@ -35,54 +32,38 @@ class _HomePageState extends State<HomePage> {
     });
 
     try {
-      final records = await pb.collection('historique').getFullList(
+      final records = await pb.collection('favoris').getFullList(
             sort: '-created',
             filter: 'user = "${pb.authStore.record!.id}"',
           );
+      final barcodes = records.map((r) => r.getStringValue('barcode')).where((b) => b.isNotEmpty).toList();
 
-      final barcodes = <String>[];
-      for (final record in records) {
-        final barcode = record.getStringValue('barcode');
-        if (barcode.isNotEmpty && !barcodes.contains(barcode)) {
-          barcodes.add(barcode);
-        }
-      }
-
-      final initialItems = <_HistoryItem>[];
+      // Load from cache first
+      final cachedItems = <_FavItem>[];
       for (final barcode in barcodes) {
         final cached = await ProductCache.getCachedProduct(barcode);
-        initialItems.add(_HistoryItem(barcode: barcode, product: cached));
+        cachedItems.add(_FavItem(barcode: barcode, product: cached));
       }
 
       if (mounted) {
         setState(() {
-          _items = initialItems;
+          _items = cachedItems;
           _isLoading = false;
         });
       }
 
-      // 2. Second pass: update each item from API one by one (to avoid rate limits)
+      // Refresh from API
       for (int i = 0; i < barcodes.length; i++) {
         final barcode = barcodes[i];
-        
-        // If we already have a success-fetched product in cache, maybe skip it to save API calls?
-        // For now, let's just fetch everything once.
         try {
           final result = await OpenFoodFactsAPI().getProduct(barcode);
-          ProductCache.saveProduct(result.product, result.raw);
-          
+          await ProductCache.saveProduct(result.product, result.raw);
           if (mounted && _items != null && _items!.length > i) {
             setState(() {
-              _items![i] = _HistoryItem(barcode: barcode, product: result.product);
+              _items![i] = _FavItem(barcode: barcode, product: result.product);
             });
           }
-        } catch (_) {
-          // If API fails (404 or rate limit), we keep what we have (cached version)
-          // No need to update state if it failed.
-        }
-        
-        // Small delay between requests to be nice to the API
-        await Future.delayed(const Duration(milliseconds: 200));
+        } catch (_) {}
       }
     } catch (e) {
       if (mounted) {
@@ -94,18 +75,17 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  void _logout() {
-    pb.authStore.clear();
-    context.go('/login');
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.white,
       appBar: AppBar(
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: AppColors.blueDark),
+          onPressed: () => context.pop(),
+        ),
         title: Text(
-          'Mes scans',
+          'Mes favoris',
           style: TextStyle(
             color: AppColors.blueDark,
             fontWeight: FontWeight.bold,
@@ -113,24 +93,6 @@ class _HomePageState extends State<HomePage> {
         ),
         backgroundColor: AppColors.white,
         elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(AppIcons.tab_barcode),
-            color: AppColors.blueDark,
-            onPressed: () async {
-              await context.push('/scanner');
-              _load();
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.star, color: AppColors.yellow),
-            onPressed: () => context.push('/favorites'),
-          ),
-          IconButton(
-            icon: Icon(Icons.exit_to_app, color: AppColors.blueDark),
-            onPressed: _logout,
-          ),
-        ],
       ),
       body: _buildBody(),
     );
@@ -155,7 +117,12 @@ class _HomePageState extends State<HomePage> {
     }
 
     if (_items == null || _items!.isEmpty) {
-      return _buildEmptyState();
+      return Center(
+        child: Text(
+          'Aucun favori pour le moment',
+          style: TextStyle(color: AppColors.grey3, fontSize: 16),
+        ),
+      );
     }
 
     return RefreshIndicator(
@@ -166,89 +133,26 @@ class _HomePageState extends State<HomePage> {
         separatorBuilder: (_, i) => const SizedBox(height: 12),
         itemBuilder: (context, index) {
           final item = _items![index];
-          return _ProductCard(
+          return _FavProductCard(
             barcode: item.barcode,
             product: item.product,
             onTap: () async {
               await context.push('/product', extra: item.barcode);
-              _load();
+              _load(); // Refresh in case favorite was removed
             },
           );
         },
       ),
     );
   }
-
-  Widget _buildEmptyState() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 48),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SvgPicture.asset(
-              AppVectorialImages.illEmpty,
-              width: 200,
-            ),
-            const SizedBox(height: 24),
-            Text(
-              'Vous n\'avez pas encore\nscanné de produit',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: AppColors.grey3,
-                fontSize: 16,
-              ),
-            ),
-            const SizedBox(height: 32),
-            SizedBox(
-              width: double.infinity,
-              height: 48,
-              child: ElevatedButton(
-                onPressed: () async {
-                  await context.push('/scanner');
-                  _load();
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.yellow,
-                  foregroundColor: AppColors.blueDark,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(24),
-                  ),
-                  elevation: 0,
-                ),
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'COMMENCER',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
-                    SizedBox(width: 8),
-                    Icon(Icons.arrow_forward, size: 20),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }
 
-// ============================================================
-// Shared product card widget
-// ============================================================
-
-class _ProductCard extends StatelessWidget {
+class _FavProductCard extends StatelessWidget {
   final String barcode;
   final Product? product;
   final VoidCallback onTap;
 
-  const _ProductCard({
+  const _FavProductCard({
     required this.barcode,
     required this.product,
     required this.onTap,
@@ -269,7 +173,6 @@ class _ProductCard extends StatelessWidget {
           padding: const EdgeInsets.all(10),
           child: Row(
             children: [
-              // Product image
               ClipRRect(
                 borderRadius: BorderRadius.circular(8),
                 child: SizedBox(
@@ -296,13 +199,11 @@ class _ProductCard extends StatelessWidget {
                         )
                       : Container(
                           color: AppColors.grey1,
-                          child:
-                              Icon(Icons.fastfood, color: AppColors.grey2),
+                          child: Icon(Icons.fastfood, color: AppColors.grey2),
                         ),
                 ),
               ),
               const SizedBox(width: 12),
-              // Product info
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -393,9 +294,9 @@ class _NutriscoreBadge extends StatelessWidget {
   }
 }
 
-class _HistoryItem {
+class _FavItem {
   final String barcode;
   final Product? product;
 
-  _HistoryItem({required this.barcode, this.product});
+  _FavItem({required this.barcode, this.product});
 }

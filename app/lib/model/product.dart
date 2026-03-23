@@ -8,7 +8,6 @@ class Product {
   final List<String>? brands;
   final List<String>? manufacturingCountries;
   final ProductNutriScore? nutriScore;
-  final ProductNutriScoreLevels? nutriScoreLevels;
   final ProductNovaScore? novaScore;
   final ProductGreenScore? greenScore;
   final List<String>? ingredients;
@@ -34,7 +33,6 @@ class Product {
     this.brands,
     this.manufacturingCountries,
     this.nutriScore,
-    this.nutriScoreLevels,
     this.novaScore,
     this.greenScore,
     this.ingredients,
@@ -50,58 +48,166 @@ class Product {
     this.isVegetarian,
   });
 
+  /// Parse from the actual OpenFoodFacts API v2 JSON (the `product` object).
   factory Product.fromJson(Map<String, dynamic> json) {
+    // --- Ingredients list ---
+    List<String>? ingredientsList;
+    final rawIngredients = json['ingredients'];
+    if (rawIngredients is List) {
+      ingredientsList = rawIngredients
+          .map((e) => e is Map ? (e['text']?.toString() ?? '') : e.toString())
+          .where((s) => s.isNotEmpty)
+          .toList();
+    }
+
+    // --- Allergens ---
+    List<String>? allergensList;
+    final rawAllergensTags = json['allergens_tags'];
+    if (rawAllergensTags is List) {
+      allergensList = rawAllergensTags
+          .map((e) => _cleanTag(e.toString()))
+          .toList();
+    }
+
+    // --- Traces ---
+    List<String>? tracesList;
+    final rawTracesTags = json['traces_tags'];
+    if (rawTracesTags is List) {
+      tracesList = rawTracesTags
+          .map((e) => _cleanTag(e.toString()))
+          .toList();
+    }
+
+    // --- Additives ---
+    Map<String, String>? additivesMap;
+    final rawAdditivesTags = json['additives_tags'];
+    if (rawAdditivesTags is List) {
+      additivesMap = {
+        for (var tag in rawAdditivesTags)
+          _cleanTag(tag.toString()): _cleanTag(tag.toString()),
+      };
+    }
+
+    // --- Brands ---
+    List<String>? brandsList;
+    final rawBrands = json['brands'];
+    if (rawBrands is String && rawBrands.isNotEmpty) {
+      brandsList = rawBrands.split(',').map((b) => b.trim()).toList();
+    }
+
+    // --- Manufacturing countries ---
+    List<String>? countries;
+    final rawCountries = json['manufacturing_places'];
+    if (rawCountries is String && rawCountries.isNotEmpty) {
+      countries = rawCountries.split(',').map((c) => c.trim()).toList();
+    }
+
+    // --- Palm oil ---
+    final palmOilCount = json['ingredients_from_palm_oil_n'];
+    final hasPalmOil = palmOilCount is int && palmOilCount > 0;
+
+    // --- Vegan / Vegetarian from analysis tags ---
+    final analysisTags = json['ingredients_analysis_tags'];
+    ProductAnalysis? isVegan;
+    ProductAnalysis? isVegetarian;
+    ProductAnalysis? containsPalmOilAnalysis;
+    if (analysisTags is List) {
+      for (final tag in analysisTags) {
+        final t = tag.toString();
+        if (t.contains('vegan')) {
+          if (t.contains('non-vegan')) {
+            isVegan = ProductAnalysis.no;
+          } else if (t.contains('maybe-vegan') || t.contains('vegan-status-unknown')) {
+            isVegan = ProductAnalysis.maybe;
+          } else {
+            isVegan = ProductAnalysis.yes;
+          }
+        }
+        if (t.contains('vegetarian')) {
+          if (t.contains('non-vegetarian')) {
+            isVegetarian = ProductAnalysis.no;
+          } else if (t.contains('maybe-vegetarian') || t.contains('vegetarian-status-unknown')) {
+            isVegetarian = ProductAnalysis.maybe;
+          } else {
+            isVegetarian = ProductAnalysis.yes;
+          }
+        }
+        if (t.contains('palm-oil')) {
+          if (t.contains('palm-oil-free')) {
+            containsPalmOilAnalysis = ProductAnalysis.no;
+          } else if (t.contains('may-contain-palm-oil')) {
+            containsPalmOilAnalysis = ProductAnalysis.maybe;
+          } else {
+            containsPalmOilAnalysis = ProductAnalysis.yes;
+          }
+        }
+      }
+    }
+
     return Product(
-      barcode: json['barcode'] as String,
-      name: json['name'] as String?,
-      altName: json['altName'] as String?,
-      picture: json['pictures']?['front'] as String?,
+      barcode: json['code']?.toString() ?? json['_id']?.toString() ?? '',
+      name: json['product_name_fr'] as String? ??
+          json['product_name'] as String?,
+      altName: json['generic_name_fr'] as String? ??
+          json['generic_name'] as String?,
+      picture: json['image_front_url'] as String? ??
+          json['image_front_small_url'] as String? ??
+          json['image_url'] as String? ??
+          json['image_small_url'] as String?,
       quantity: json['quantity'] as String?,
-      brands: (json['brands'] as List<dynamic>?)?.cast<String>(),
-      manufacturingCountries:
-          (json['manufacturingCountries'] as List<dynamic>?)?.cast<String>(),
-      nutriScore: _parseNutriScore(json['nutriScore']),
-      nutriScoreLevels: json['levels'] != null
-          ? ProductNutriScoreLevels.fromJson(json['levels'])
-          : null,
-      novaScore: _parseNovaScore(json['novaScore']),
-      greenScore: _parseGreenScore(json['ecoScoreGrade']),
-      ingredients:
-          (json['ingredients']?['list'] as List<dynamic>?)?.cast<String>(),
+      brands: brandsList,
+      manufacturingCountries: countries,
+      nutriScore: _parseNutriScore(
+          json['nutriscore_grade'] ?? json['nutrition_grades']),
+      novaScore: _parseNovaScore(json['nova_group']),
+      greenScore: _parseGreenScore(json['ecoscore_grade']),
+      ingredients: ingredientsList,
       ingredientsWithAllergens:
-          json['ingredients']?['withAllergens'] as String?,
-      traces: (json['traces']?['list'] as List<dynamic>?)?.cast<String>(),
-      allergens: (json['allergens']?['list'] as List<dynamic>?)?.cast<String>(),
-      additives: (json['additives'] as Map<String, dynamic>?)
-          ?.map((key, value) => MapEntry(key, value as String)),
-      nutrientLevels: json['nutrientLevels'] != null
-          ? NutrientLevels.fromJson(json['nutrientLevels'])
+          json['ingredients_text_with_allergens_fr'] as String? ??
+              json['ingredients_text_with_allergens'] as String?,
+      traces: tracesList,
+      allergens: allergensList,
+      additives: additivesMap,
+      nutrientLevels: json['nutrient_levels'] != null
+          ? NutrientLevels.fromJson(
+              json['nutrient_levels'] as Map<String, dynamic>)
           : null,
-      nutritionFacts: json['nutritionFacts'] != null
-          ? NutritionFacts.fromJson(json['nutritionFacts'])
+      nutritionFacts: json['nutriments'] != null
+          ? NutritionFacts.fromApiJson(
+              json['nutriments'] as Map<String, dynamic>,
+              json['serving_size'] as String? ?? '',
+            )
           : null,
-      ingredientsFromPalmOil:
-          json['ingredients']?['containsPalmOil'] as bool?,
-      containsPalmOil:
-          ProductAnalysis.fromString(json['analysis']?['palmOil']),
-      isVegan: ProductAnalysis.fromString(json['analysis']?['vegan']),
-      isVegetarian: ProductAnalysis.fromString(json['analysis']?['vegetarian']),
+      ingredientsFromPalmOil: hasPalmOil,
+      containsPalmOil: containsPalmOilAnalysis,
+      isVegan: isVegan,
+      isVegetarian: isVegetarian,
     );
   }
 
+  /// Remove the "en:" / "fr:" prefix from OpenFoodFacts tags.
+  static String _cleanTag(String tag) {
+    final idx = tag.indexOf(':');
+    if (idx >= 0 && idx < 3) {
+      return tag.substring(idx + 1).replaceAll('-', ' ');
+    }
+    return tag;
+  }
+
   static ProductNutriScore _parseNutriScore(dynamic value) {
-    return switch (value?.toString().toUpperCase()) {
-      'A' => ProductNutriScore.A,
-      'B' => ProductNutriScore.B,
-      'C' => ProductNutriScore.C,
-      'D' => ProductNutriScore.D,
-      'E' => ProductNutriScore.E,
+    return switch (value?.toString().toLowerCase()) {
+      'a' => ProductNutriScore.A,
+      'b' => ProductNutriScore.B,
+      'c' => ProductNutriScore.C,
+      'd' => ProductNutriScore.D,
+      'e' => ProductNutriScore.E,
       _ => ProductNutriScore.unknown,
     };
   }
 
   static ProductNovaScore _parseNovaScore(dynamic value) {
-    return switch (value) {
+    final v = value is int ? value : int.tryParse(value?.toString() ?? '');
+    return switch (v) {
       1 => ProductNovaScore.group1,
       2 => ProductNovaScore.group2,
       3 => ProductNovaScore.group3,
@@ -123,6 +229,10 @@ class Product {
     };
   }
 }
+
+// ============================================================
+// Nutrition Facts
+// ============================================================
 
 class NutritionFacts {
   final String servingSize;
@@ -151,29 +261,38 @@ class NutritionFacts {
     this.energy,
   });
 
-  factory NutritionFacts.fromJson(Map<String, dynamic> json) {
+  /// Build from the flat `nutriments` map of the OpenFoodFacts API.
+  factory NutritionFacts.fromApiJson(
+    Map<String, dynamic> n,
+    String servingSize,
+  ) {
     return NutritionFacts(
-      servingSize: json['servingSize'] as String? ?? '',
-      calories: json['calories'] != null
-          ? Nutriment.fromJson(json['calories'])
-          : null,
-      fat: json['fat'] != null ? Nutriment.fromJson(json['fat']) : null,
-      saturatedFat: json['saturatedFat'] != null
-          ? Nutriment.fromJson(json['saturatedFat'])
-          : null,
-      carbohydrate: json['carbohydrate'] != null
-          ? Nutriment.fromJson(json['carbohydrate'])
-          : null,
-      sugar: json['sugar'] != null ? Nutriment.fromJson(json['sugar']) : null,
-      fiber: json['fiber'] != null ? Nutriment.fromJson(json['fiber']) : null,
-      proteins: json['proteins'] != null
-          ? Nutriment.fromJson(json['proteins'])
-          : null,
-      sodium:
-          json['sodium'] != null ? Nutriment.fromJson(json['sodium']) : null,
-      salt: json['salt'] != null ? Nutriment.fromJson(json['salt']) : null,
-      energy:
-          json['energy'] != null ? Nutriment.fromJson(json['energy']) : null,
+      servingSize: servingSize,
+      energy: _nutriment(n, 'energy-kj', 'kJ'),
+      calories: _nutriment(n, 'energy-kcal', 'kcal'),
+      fat: _nutriment(n, 'fat', 'g'),
+      saturatedFat: _nutriment(n, 'saturated-fat', 'g'),
+      carbohydrate: _nutriment(n, 'carbohydrates', 'g'),
+      sugar: _nutriment(n, 'sugars', 'g'),
+      fiber: _nutriment(n, 'fiber', 'g'),
+      proteins: _nutriment(n, 'proteins', 'g'),
+      sodium: _nutriment(n, 'sodium', 'g'),
+      salt: _nutriment(n, 'salt', 'g'),
+    );
+  }
+
+  static Nutriment? _nutriment(
+    Map<String, dynamic> n,
+    String key,
+    String unit,
+  ) {
+    final per100g = n['${key}_100g'];
+    final perServing = n['${key}_serving'];
+    if (per100g == null && perServing == null) return null;
+    return Nutriment(
+      unit: unit,
+      per100g: per100g,
+      perServing: perServing,
     );
   }
 }
@@ -184,15 +303,11 @@ class Nutriment {
   final dynamic per100g;
 
   Nutriment({required this.unit, this.perServing, this.per100g});
-
-  factory Nutriment.fromJson(Map<String, dynamic> json) {
-    return Nutriment(
-      unit: json['unit'] as String? ?? '',
-      perServing: json['perServing'],
-      per100g: json['per100g'],
-    );
-  }
 }
+
+// ============================================================
+// Nutrient Levels (fat / saturated-fat / sugars / salt)
+// ============================================================
 
 class NutrientLevels {
   final String? salt;
@@ -202,97 +317,20 @@ class NutrientLevels {
 
   NutrientLevels({this.salt, this.saturatedFat, this.sugars, this.fat});
 
+  /// The API returns e.g. {"fat":"high","saturated-fat":"high","sugars":"high","salt":"low"}
   factory NutrientLevels.fromJson(Map<String, dynamic> json) {
     return NutrientLevels(
-      salt: json['salt']?['level'] as String?,
-      saturatedFat: json['saturatedFat']?['level'] as String?,
-      sugars: json['sugars']?['level'] as String?,
-      fat: json['fat']?['level'] as String?,
+      salt: json['salt'] as String?,
+      saturatedFat: json['saturated-fat'] as String?,
+      sugars: json['sugars'] as String?,
+      fat: json['fat'] as String?,
     );
   }
 }
 
-class ProductNutriScoreLevels {
-  final ProductNutriScoreLevel? energy;
-  final ProductNutriScoreLevel? fiber;
-  final ProductNutriScoreLevel? fruitsVegetablesLegumes;
-  final ProductNutriScoreLevel? proteins;
-  final ProductNutriScoreLevel? salt;
-  final ProductNutriScoreLevel? saturatedFat;
-  final ProductNutriScoreLevel? sugars;
-
-  ProductNutriScoreLevels({
-    required this.energy,
-    required this.fiber,
-    required this.fruitsVegetablesLegumes,
-    required this.proteins,
-    required this.salt,
-    required this.saturatedFat,
-    required this.sugars,
-  });
-
-  factory ProductNutriScoreLevels.fromJson(Map<String, dynamic> json) {
-    return ProductNutriScoreLevels(
-      energy: json['energy'] != null
-          ? ProductNutriScoreLevel.fromJson(json['energy'])
-          : null,
-      fiber: json['fiber'] != null
-          ? ProductNutriScoreLevel.fromJson(json['fiber'])
-          : null,
-      fruitsVegetablesLegumes: json['fruitsVegetablesLegumes'] != null
-          ? ProductNutriScoreLevel.fromJson(json['fruitsVegetablesLegumes'])
-          : null,
-      proteins: json['proteins'] != null
-          ? ProductNutriScoreLevel.fromJson(json['proteins'])
-          : null,
-      salt: json['salt'] != null
-          ? ProductNutriScoreLevel.fromJson(json['salt'])
-          : null,
-      saturatedFat: json['saturatedFat'] != null
-          ? ProductNutriScoreLevel.fromJson(json['saturatedFat'])
-          : null,
-      sugars: json['sugars'] != null
-          ? ProductNutriScoreLevel.fromJson(json['sugars'])
-          : null,
-    );
-  }
-}
-
-class ProductNutriScoreLevel {
-  final double points;
-  final double maxPoints;
-  final String unit;
-  final double value;
-  final ProductNutriScoreLevelType type;
-
-  ProductNutriScoreLevel({
-    required this.points,
-    required this.maxPoints,
-    required this.unit,
-    required this.value,
-    required this.type,
-  });
-
-  factory ProductNutriScoreLevel.fromJson(Map<String, dynamic> json) {
-    return ProductNutriScoreLevel(
-      points: (json['points'] as num?)?.toDouble() ?? 0,
-      maxPoints: (json['maxPoints'] as num?)?.toDouble() ?? 0,
-      unit: json['unit'] as String? ?? '',
-      value: (json['value'] as num?)?.toDouble() ?? 0,
-      type: _parseType(json['type']),
-    );
-  }
-
-  static ProductNutriScoreLevelType _parseType(dynamic value) {
-    return switch (value?.toString().toLowerCase()) {
-      'positive' => ProductNutriScoreLevelType.positive,
-      'negative' => ProductNutriScoreLevelType.negative,
-      _ => ProductNutriScoreLevelType.unknown,
-    };
-  }
-}
-
-enum ProductNutriScoreLevelType { positive, negative, unknown }
+// ============================================================
+// Enums
+// ============================================================
 
 enum ProductNutriScore { A, B, C, D, E, unknown }
 
@@ -314,120 +352,3 @@ enum ProductAnalysis {
     };
   }
 }
-
-Product generateProduct() => Product(
-  barcode: '1234567890',
-  name: 'Nutella',
-  altName: 'Product Alt Name',
-  picture:
-      'https://images.openfoodfacts.org/images/products/301/762/042/5035/front_fr.533.400.jpg',
-  quantity: '200g',
-  brands: ['Ferrero', 'Ferrero'],
-  manufacturingCountries: ['France', 'Italie'],
-  nutriScore: ProductNutriScore.E,
-  novaScore: ProductNovaScore.group4,
-  greenScore: ProductGreenScore.D,
-  ingredients: [
-    'Sucre',
-    'sirop de glucose',
-    '_lait_ écrémé',
-    'crème légère (_lait_)',
-    'eau',
-    'beurre de cacao',
-    'matière grasse de noix de coco',
-    '_lait_ écrémé concentré sucré',
-    'pâte de cacao',
-    'farine de _blé_',
-    'matière grasse de palme',
-    '_lait_ écrémé en poudre',
-    '_lactose_',
-    'matière grasse du _lait_',
-    'huile de palmiste',
-    'petit-_lait_ en poudre',
-    'cacao maigre',
-    'beurre (_lait_)',
-    'émulsifiants (lécithine de _soja_, E471, tristéarate de sorbitane)',
-    '_lait_ entier en poudre',
-    'stabilisants (E407, E410, E412)',
-    'arômes naturels (_lait_)',
-    'sel',
-    'colorant naturel (caramel ordinaire)',
-    'cacao en poudre',
-    'poudre à lever (E503)',
-    'extrait naturel de vanille',
-  ],
-  ingredientsWithAllergens:
-      'Sucre, sirop de glucose, <span class=\"allergen\">lait</span> écrémé, crème légère (<span class=\"allergen\">lait</span>), eau, beurre de cacao, matière grasse de noix de coco, <span class=\"allergen\">lait</span> écrémé concentré sucré, pâte de cacao, farine de <span class=\"allergen\">blé</span>, matière grasse de palme, <span class=\"allergen\">lait</span> écrémé en poudre, <span class=\"allergen\">lactose</span>, matière grasse du <span class=\"allergen\">lait</span>, huile de palmiste, petit-<span class=\"allergen\">lait</span> en poudre, cacao maigre, <span class=\"allergen\">beurre</span> (<span class=\"allergen\">lait</span>), émulsifiants (lécithine de <span class=\"allergen\">soja</span>, E471, tristéarate de sorbitane), <span class=\"allergen\">lait</span> entier en poudre, stabilisants (E407, E410, E412), arômes naturels (<span class=\"allergen\">lait</span>), sel, colorant naturel (caramel ordinaire), cacao en poudre, poudre à lever (E503), extrait naturel de vanille. (Peut contenir<span class=\"allergen\">: cacahuète</span>, <span class=\"allergen\">noisette</span>, <span class=\"allergen\">amande</span>).',
-  traces: ['cacahuète', 'noisette', 'amande'],
-  allergens: ['lait', 'soja', 'beurre'],
-  additives: {'e322i': 'Description', 'e471': 'Description'},
-  nutriScoreLevels: ProductNutriScoreLevels(
-    energy: ProductNutriScoreLevel(
-      points: 3,
-      maxPoints: 10,
-      unit: 'kJ',
-      value: 1180,
-      type: ProductNutriScoreLevelType.negative,
-    ),
-    saturatedFat: ProductNutriScoreLevel(
-      points: 9,
-      maxPoints: 10,
-      unit: 'g',
-      value: 9.05,
-      type: ProductNutriScoreLevelType.negative,
-    ),
-    sugars: ProductNutriScoreLevel(
-      points: 7,
-      maxPoints: 15,
-      unit: 'g',
-      value: 25.5,
-      type: ProductNutriScoreLevelType.negative,
-    ),
-    proteins: ProductNutriScoreLevel(
-      points: 1,
-      maxPoints: 7,
-      unit: 'g',
-      value: 3.5,
-      type: ProductNutriScoreLevelType.positive,
-    ),
-    fiber: ProductNutriScoreLevel(
-      points: 0,
-      maxPoints: 5,
-      unit: 'g',
-      value: 0,
-      type: ProductNutriScoreLevelType.unknown,
-    ),
-    salt: ProductNutriScoreLevel(
-      points: 1,
-      maxPoints: 20,
-      unit: 'g',
-      value: 0,
-      type: ProductNutriScoreLevelType.positive,
-    ),
-    fruitsVegetablesLegumes: ProductNutriScoreLevel(
-      points: 0,
-      maxPoints: 5,
-      unit: '%',
-      value: 0,
-      type: ProductNutriScoreLevelType.positive,
-    ),
-  ),
-  nutrientLevels: NutrientLevels(
-    salt: 'Low',
-    saturatedFat: 'Low',
-    sugars: 'Low',
-    fat: 'Low',
-  ),
-  nutritionFacts: NutritionFacts(
-    servingSize: '100g',
-    calories: Nutriment(unit: 'kcal', perServing: 100, per100g: 100),
-    fat: Nutriment(unit: 'g', perServing: 10, per100g: 10),
-    saturatedFat: Nutriment(unit: 'g', perServing: 5, per100g: 5),
-    carbohydrate: Nutriment(unit: 'g', perServing: 20, per100g: 20),
-    sugar: Nutriment(unit: 'g', perServing: 10, per100g: 10),
-    fiber: Nutriment(unit: 'g', perServing: 5, per100g: 5),
-    proteins: Nutriment(unit: 'g', perServing: 10, per100g: 10),
-    sodium: Nutriment(unit: 'mg', perServing: 100, per100g: 100),
-    salt: Nutriment(unit: 'g', perServing: 0.1, per100g: 0.1),
-  ),
-);

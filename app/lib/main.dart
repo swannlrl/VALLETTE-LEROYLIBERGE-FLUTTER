@@ -1,36 +1,45 @@
 import 'package:flutter/material.dart';
+import 'package:formation_flutter/api/pocketbase_api.dart';
 import 'package:formation_flutter/l10n/app_localizations.dart';
 import 'package:formation_flutter/res/app_colors.dart';
 import 'package:formation_flutter/res/app_theme_extension.dart';
+import 'package:formation_flutter/screens/auth/login_page.dart';
+import 'package:formation_flutter/screens/auth/register_page.dart';
+import 'package:formation_flutter/screens/favorites/favorites_page.dart';
 import 'package:formation_flutter/screens/homepage/homepage_screen.dart';
 import 'package:formation_flutter/screens/product/product_page.dart';
+import 'package:formation_flutter/screens/rappel/rappel_detail_page.dart';
+import 'package:formation_flutter/screens/scanner/scanner_page.dart';
 import 'package:go_router/go_router.dart';
+import 'package:pocketbase/pocketbase.dart';
 
-// --- AJOUTE CES DEUX IMPORTS ICI ---
-import 'package:pocketbase/pocketbase.dart'; // Pour reconnaître RecordModel
-import 'package:formation_flutter/screens/product/rappel_detail_page.dart'; // Ton nouvel écran
+void main() => runApp(const MyApp());
 
-void main() {
-  runApp(const MyApp());
-}
+final _router = GoRouter(
+  redirect: (context, state) {
+    final isLoggedIn = pb.authStore.isValid;
+    final isAuthRoute =
+        state.matchedLocation == '/login' || state.matchedLocation == '/register';
 
-GoRouter _router = GoRouter(
+    if (!isLoggedIn && !isAuthRoute) return '/login';
+    if (isLoggedIn && isAuthRoute) return '/';
+    return null;
+  },
   routes: [
-    GoRoute(path: '/', builder: (_, _) => const HomePage()),
+    GoRoute(path: '/login', builder: (_, __) => const LoginPage()),
+    GoRoute(path: '/register', builder: (_, __) => const RegisterPage()),
+    GoRoute(path: '/', builder: (_, __) => const HomePage()),
     GoRoute(
       path: '/product',
-      builder: (_, GoRouterState state) =>
-          ProductPage(barcode: state.extra as String),
+      builder: (_, state) => ProductPage(barcode: state.extra as String),
     ),
-    // --- AJOUTE CETTE ROUTE ICI (Consigne 5) ---
     GoRoute(
-      path: '/rappel-detail',
-      builder: (_, GoRouterState state) {
-        // On récupère l'objet RecordModel qu'on a passé dans le ProductPage
-        final record = state.extra as RecordModel;
-        return RappelDetailPage(rappel: record);
-      },
+      path: '/rappel',
+      builder: (_, state) =>
+          RappelDetailPage(record: state.extra as RecordModel),
     ),
+    GoRoute(path: '/scanner', builder: (_, __) => const ScannerPage()),
+    GoRoute(path: '/favorites', builder: (_, __) => const FavoritesPage()),
   ],
 );
 
@@ -40,28 +49,18 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
-      title: 'Open Food Facts',
+      routerConfig: _router,
+      debugShowCheckedModeBanner: false,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       theme: ThemeData(
-        extensions: [OffThemeExtension.defaultValues()],
         fontFamily: 'Avenir',
-        dividerTheme: DividerThemeData(color: AppColors.grey2, space: 1.0),
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-          showSelectedLabels: true,
-          showUnselectedLabels: true,
-          selectedItemColor: AppColors.blue,
-          unselectedItemColor: AppColors.grey2,
-          type: BottomNavigationBarType.fixed,
-          backgroundColor: Colors.white,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: AppColors.blueDark,
         ),
-        navigationBarTheme: const NavigationBarThemeData(
-          indicatorColor: AppColors.blue,
-        ),
+        appBarTheme: const AppBarTheme(centerTitle: false),
+        extensions: [OffThemeExtension.defaultValues()],
       ),
-      debugShowCheckedModeBanner: false,
-      routerConfig: _router,
     );
   }
 }

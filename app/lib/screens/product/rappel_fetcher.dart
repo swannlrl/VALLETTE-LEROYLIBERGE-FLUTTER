@@ -1,41 +1,33 @@
 import 'package:flutter/material.dart';
+import 'package:formation_flutter/api/pocketbase_api.dart';
 import 'package:pocketbase/pocketbase.dart';
 
-// Définition des états pour corriger l'erreur 'state'
-sealed class RappelFetcherState {}
-class RappelFetcherLoading extends RappelFetcherState {}
-class RappelFetcherError extends RappelFetcherState {}
-class RappelFetcherNotFound extends RappelFetcherState {}
-class RappelFetcherFound extends RappelFetcherState {
+sealed class RappelState {}
+class RappelLoading extends RappelState {}
+class RappelNotFound extends RappelState {}
+class RappelFound extends RappelState {
   final RecordModel record;
-  RappelFetcherFound(this.record);
+  RappelFound(this.record);
 }
 
 class RappelFetcher extends ChangeNotifier {
   RappelFetcher({required String barcode}) : _barcode = barcode {
-    _loadRappel();
+    _load();
   }
 
   final String _barcode;
-  // On définit la propriété 'state' attendue par la vue
-  RappelFetcherState state = RappelFetcherLoading();
-  final pb = PocketBase('http://127.0.0.1:8090');
+  RappelState state = RappelLoading();
 
-  Future<void> _loadRappel() async {
-    state = RappelFetcherLoading();
-    notifyListeners();
-
+  Future<void> _load() async {
     try {
-      // On cherche le gtin et on récupère les infos de la campagne liée
-      final result = await pb.collection('produits').getFirstListItem(
+      // Requête directe sur la collection unifiée "rappels"
+      final record = await pb.collection('rappels').getFirstListItem(
         'gtin = "$_barcode"',
-        expand: 'campagnes',
       );
-      state = RappelFetcherFound(result);
+      state = RappelFound(record);
     } catch (e) {
-      state = RappelFetcherNotFound();
-    } finally {
-      notifyListeners();
+      state = RappelNotFound();
     }
+    notifyListeners(); // Prévient les widgets du changement
   }
 }

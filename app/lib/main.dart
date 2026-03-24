@@ -35,8 +35,13 @@ final _router = GoRouter(
     ),
     GoRoute(
       path: '/rappel',
-      builder: (_, state) =>
-          RappelDetailPage(record: state.extra as RecordModel),
+      builder: (_, state) {
+        final extra = state.extra as Map<String, dynamic>;
+        return RappelDetailPage(
+          record: extra['record'] as RecordModel,
+          productImageUrl: extra['imageUrl'] as String? ?? '',
+        );
+      },
     ),
     GoRoute(path: '/scanner', builder: (_, __) => const ScannerPage()),
     GoRoute(path: '/favorites', builder: (_, __) => const FavoritesPage()),

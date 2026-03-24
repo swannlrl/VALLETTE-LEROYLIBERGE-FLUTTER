@@ -25,16 +25,16 @@ class AppLocalizationsFr extends AppLocalizations {
   String get nutriscore => 'Nutri-Score';
 
   @override
-  String get greenscore => 'Green-Score';
+  String get greenscore => 'EcoScore';
 
   @override
-  String get product_quantity => 'Quantité :';
+  String get product_quantity => 'Quantité';
 
   @override
-  String get product_countries => 'Vendu en :';
+  String get product_countries => 'Vendu';
 
   @override
-  String get product_vegan => 'Végan';
+  String get product_vegan => 'Végétalien';
 
   @override
   String get product_vegetarian => 'Végétarien';
@@ -52,10 +52,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get product_tab_nutrition_facts => 'Tableau';
 
   @override
-  String get product_nutrition_facts_per_100g => 'Pour 100 g';
+  String get product_nutrition_facts_per_100g => 'Pour 100g';
 
   @override
-  String get product_nutrition_facts_per_serving => 'Par portion';
+  String get product_nutrition_facts_per_serving => 'Par part';
 
   @override
   String get product_nutrition_facts_energy => 'Énergie';
@@ -65,13 +65,13 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get product_nutrition_facts_saturated_fats =>
-      'dont acides gras saturés';
+      'dont Acides gras saturés';
 
   @override
   String get product_nutrition_facts_carbohydrates => 'Glucides';
 
   @override
-  String get product_nutrition_facts_sugars => 'dont sucres';
+  String get product_nutrition_facts_sugars => 'dont Sucres';
 
   @override
   String get product_nutrition_facts_fiber => 'Fibres alimentaires';

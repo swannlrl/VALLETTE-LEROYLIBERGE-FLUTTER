@@ -7,60 +7,70 @@ import 'package:provider/provider.dart';
 class ProductTab1 extends StatelessWidget {
   const ProductTab1({super.key});
 
-  static const double _kHorizontalPadding = 20.0;
+  static const double _kHorizontalPadding = 28.0; // From Sketch: 28px right margin
 
   @override
   Widget build(BuildContext context) {
     final Product product = context.watch<Product>();
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: _kHorizontalPadding,
-        vertical: 8.0,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // ── Ingrédients ──
-          const _SectionDividerTitle(title: 'Ingrédients'),
-          const SizedBox(height: 12),
-          if (product.ingredients != null && product.ingredients!.isNotEmpty)
-            ...product.ingredients!.map(
-              (ingredient) => _IngredientRow(text: ingredient),
-            )
-          else
-            const _EmptyText(text: 'Aucun'),
-          const SizedBox(height: 24),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 8.0),
+        // ── Ingrédients ──
+        const _SectionDividerTitle(title: 'Ingrédients'),
+        if (product.ingredients != null && product.ingredients!.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: _kHorizontalPadding),
+            child: Column(
+              children: product.ingredients!.map(
+                (ingredient) => _IngredientRow(ingredient: ingredient),
+              ).toList(),
+            ),
+          )
+        else
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: _kHorizontalPadding, vertical: 16),
+            child: _EmptyText(text: 'Aucun'),
+          ),
+        const SizedBox(height: 24),
 
-          // ── Substances allergènes ──
-          const _SectionDividerTitle(title: 'Substances allergènes'),
-          const SizedBox(height: 12),
-          if (product.allergens != null && product.allergens!.isNotEmpty)
-            Wrap(
-              spacing: 8,
-              runSpacing: 6,
+        // ── Substances allergènes ──
+        const _SectionDividerTitle(title: 'Substances allergènes'),
+        if (product.allergens != null && product.allergens!.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: _kHorizontalPadding),
+            child: Column(
               children: product.allergens!
-                  .map(
-                    (allergen) => _AllergenChip(label: _capitalize(allergen)),
-                  )
+                  .map((allergen) => _SimpleRow(text: _capitalize(allergen)))
                   .toList(),
-            )
-          else
-            const _EmptyText(text: 'Aucune'),
-          const SizedBox(height: 24),
+            ),
+          )
+        else
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: _kHorizontalPadding, vertical: 16),
+            child: _EmptyText(text: 'Aucune'),
+          ),
+        const SizedBox(height: 24),
 
-          // ── Additifs ──
-          const _SectionDividerTitle(title: 'Additifs'),
-          const SizedBox(height: 12),
-          if (product.additives != null && product.additives!.isNotEmpty)
-            ...product.additives!.keys.map(
-              (additive) => _IngredientRow(text: _capitalize(additive)),
-            )
-          else
-            const _EmptyText(text: 'Aucun'),
-          const SizedBox(height: 24),
-        ],
-      ),
+        // ── Additifs ──
+        const _SectionDividerTitle(title: 'Additifs'),
+        if (product.additives != null && product.additives!.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: _kHorizontalPadding),
+            child: Column(
+              children: product.additives!.keys.map(
+                (additive) => _SimpleRow(text: _capitalize(additive)),
+              ).toList(),
+            ),
+          )
+        else
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: _kHorizontalPadding, vertical: 16),
+            child: _EmptyText(text: 'Aucun'),
+          ),
+        const SizedBox(height: 24),
+      ],
     );
   }
 
@@ -81,32 +91,20 @@ class _SectionDividerTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        const Expanded(
-          child: Divider(
-            color: AppColors.blue,
-            thickness: 1,
-            endIndent: 10,
-          ),
+    return Container(
+      width: double.infinity,
+      color: AppColors.grey1,
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Text(
+        title,
+        textAlign: TextAlign.center,
+        style: const TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w800, // Avenir-Black
+          color: AppColors.blue,
+          fontFamily: 'Avenir',
         ),
-        Text(
-          title,
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w700,
-            color: AppColors.blue,
-            fontFamily: 'Avenir',
-          ),
-        ),
-        const Expanded(
-          child: Divider(
-            color: AppColors.blue,
-            thickness: 1,
-            indent: 10,
-          ),
-        ),
-      ],
+      ),
     );
   }
 }
@@ -116,48 +114,47 @@ class _SectionDividerTitle extends StatelessWidget {
 // ─────────────────────────────────────────────
 
 class _IngredientRow extends StatelessWidget {
-  const _IngredientRow({required this.text});
+  const _IngredientRow({required this.ingredient});
 
-  final String text;
+  final Ingredient ingredient;
 
   @override
   Widget build(BuildContext context) {
-    // Try to split "Légumes (41%)" → name="Légumes", value="41%"
-    final parenMatch = RegExp(r'^(.*?)\s*\((.+)\)$').firstMatch(text);
-    final String name =
-        parenMatch != null ? parenMatch.group(1)!.trim() : text.trim();
-    final String? value = parenMatch?.group(2)?.trim();
+    final String name = ingredient.displayName;
+    final String? value = ingredient.subIngredientsText;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8.0),
+          padding: const EdgeInsets.symmetric(vertical: 12.0),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
-                flex: 5,
+                flex: 1,
                 child: Text(
                   name,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 14,
-                    fontWeight:
-                        value != null ? FontWeight.w600 : FontWeight.w400,
+                    fontWeight: FontWeight.w700,
                     color: AppColors.blue,
+                    fontFamily: 'Avenir',
                   ),
                 ),
               ),
               if (value != null) ...[
                 const SizedBox(width: 8),
                 Expanded(
-                  flex: 4,
+                  flex: 1,
                   child: Text(
                     value,
-                    textAlign: TextAlign.end,
+                    textAlign: TextAlign.start,
                     style: const TextStyle(
                       fontSize: 14,
+                      fontWeight: FontWeight.w500,
                       color: AppColors.grey3,
+                      fontFamily: 'Avenir',
                     ),
                   ),
                 ),
@@ -172,31 +169,36 @@ class _IngredientRow extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────
-// Allergen chip
+// Simple text row with divider (allergens, additives)
 // ─────────────────────────────────────────────
 
-class _AllergenChip extends StatelessWidget {
-  const _AllergenChip({required this.label});
+class _SimpleRow extends StatelessWidget {
+  const _SimpleRow({required this.text});
 
-  final String label;
+  final String text;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFFECEC),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFE05252), width: 1),
-      ),
-      child: Text(
-        label,
-        style: const TextStyle(
-          color: Color(0xFFE05252),
-          fontSize: 13,
-          fontWeight: FontWeight.w500,
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 12.0),
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              text,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: AppColors.blue,
+                fontFamily: 'Avenir',
+              ),
+            ),
+          ),
         ),
-      ),
+        const Divider(height: 1, color: AppColors.grey1),
+      ],
     );
   }
 }
@@ -215,7 +217,9 @@ class _EmptyText extends StatelessWidget {
     return Text(
       text,
       style: const TextStyle(
-        color: AppColors.grey2,
+        color: AppColors.blue,
+        fontWeight: FontWeight.w600,
+        fontFamily: 'Avenir',
         fontSize: 14,
       ),
     );

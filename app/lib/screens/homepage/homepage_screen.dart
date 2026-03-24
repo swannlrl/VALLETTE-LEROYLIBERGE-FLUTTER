@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:formation_flutter/api/open_food_facts_api.dart';
 import 'package:formation_flutter/api/pocketbase_api.dart';

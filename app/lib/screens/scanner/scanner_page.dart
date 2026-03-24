@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:formation_flutter/res/app_vectorial_images.dart';
 import 'package:formation_flutter/res/app_colors.dart';
+import 'package:formation_flutter/res/app_vectorial_images.dart';
 
 class ScannerPage extends StatefulWidget {
   const ScannerPage({super.key});
@@ -89,6 +89,15 @@ class _ScannerPageState extends State<ScannerPage> {
                           hintText: 'Ex: 3017620422003',
                           filled: true,
                           fillColor: AppColors.white,
+                          prefixIcon: Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: SvgPicture.asset(
+                              AppVectorialImages.iconBarcode,
+                              colorFilter: const ColorFilter.mode(
+                                  AppColors.blueDark, BlendMode.srcIn),
+                              width: 16,
+                            ),
+                          ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                             borderSide: BorderSide.none,

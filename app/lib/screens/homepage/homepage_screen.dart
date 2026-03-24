@@ -5,7 +5,6 @@ import 'package:formation_flutter/api/pocketbase_api.dart';
 import 'package:formation_flutter/api/product_cache.dart';
 import 'package:formation_flutter/model/product.dart';
 import 'package:formation_flutter/res/app_colors.dart';
-import 'package:formation_flutter/res/app_icons.dart';
 import 'package:formation_flutter/res/app_vectorial_images.dart';
 import 'package:formation_flutter/widgets/product_list_item.dart';
 import 'package:go_router/go_router.dart';
@@ -118,8 +117,32 @@ class _HomePageState extends State<HomePage> {
         actions: [
           if (_items != null && _items!.isNotEmpty)
             IconButton(
-              icon: const Icon(AppIcons.barcode, size: 26),
-              color: AppColors.blue,
+              icon: SvgPicture.asset(
+                AppVectorialImages.iconFlame,
+                colorFilter: const ColorFilter.mode(AppColors.blue, BlendMode.srcIn),
+                width: 20,
+                height: 20,
+              ),
+              onPressed: () => context.push('/favorites'),
+            ),
+          if (_items != null && _items!.isNotEmpty)
+            IconButton(
+              icon: SvgPicture.asset(
+                AppVectorialImages.iconList,
+                colorFilter: const ColorFilter.mode(AppColors.blue, BlendMode.srcIn),
+                width: 18,
+                height: 20,
+              ),
+              onPressed: () {},
+            ),
+          if (_items != null && _items!.isNotEmpty)
+            IconButton(
+              icon: SvgPicture.asset(
+                AppVectorialImages.iconBarcode,
+                colorFilter: const ColorFilter.mode(AppColors.blue, BlendMode.srcIn),
+                width: 16,
+                height: 20,
+              ),
               onPressed: () async {
                 await context.push('/scanner');
                 _load();

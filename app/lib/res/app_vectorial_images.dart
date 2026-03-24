@@ -18,4 +18,7 @@ class AppVectorialImages {
   static const String iconBasket = 'res/svg/icon_basket.svg';
   static const String iconBasketGrey = 'res/svg/icon_basket_grey.svg';
   static const String iconImagePlaceholderAlt = 'res/svg/icon_image_placeholder_alt.svg';
+  static const String iconBarcode = 'res/svg/icon_barcode.svg';
+  static const String iconList = 'res/svg/icon_list.svg';
+  static const String iconFlame = 'res/svg/icon_flame.svg';
 }

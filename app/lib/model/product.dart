@@ -1,5 +1,59 @@
 import 'package:flutter/foundation.dart'; // import kIsWeb
+import 'package:intl/intl.dart';
 // ignore_for_file: constant_identifier_names
+
+// ============================================================
+// Ingredient (supports nested sub-ingredients)
+// ============================================================
+
+class Ingredient {
+  final String text;
+  final double? percent;
+  final List<Ingredient> subIngredients;
+
+  const Ingredient({
+    required this.text,
+    this.percent,
+    this.subIngredients = const [],
+  });
+
+  factory Ingredient.fromJson(Map<String, dynamic> json) {
+    final text = json['text']?.toString() ?? '';
+    // Prefer exact percent over estimate
+    final raw = json['percent'] ?? json['percent_estimate'];
+    final double? percent =
+        raw is num ? raw.toDouble() : double.tryParse(raw?.toString() ?? '');
+
+    final rawSubs = json['ingredients'];
+    final List<Ingredient> subs = rawSubs is List
+        ? rawSubs.whereType<Map<String, dynamic>>().map(Ingredient.fromJson).toList()
+        : [];
+
+    return Ingredient(text: text, percent: percent, subIngredients: subs);
+  }
+
+  static final _fmt = NumberFormat('#.##', 'fr');
+
+  /// e.g. "Garniture (2,5 %)" or just "Légumes"
+  String get displayName {
+    if (percent != null && percent! > 0) {
+      return '$text (${_fmt.format(percent!)} %)';
+    }
+    return text;
+  }
+
+  /// e.g. "petits pois 41%, carottes 22%" or null
+  String? get subIngredientsText {
+    if (subIngredients.isEmpty) return null;
+    return subIngredients.map((s) {
+      if (s.percent != null && s.percent! > 0) {
+        return '${s.text} ${_fmt.format(s.percent!)}%';
+      }
+      return s.text;
+    }).join(', ');
+  }
+}
+
 class Product {
   final String barcode;
   final String? name;
@@ -11,13 +65,13 @@ class Product {
   final ProductNutriScore? nutriScore;
   final ProductNovaScore? novaScore;
   final ProductGreenScore? greenScore;
-  final List<String>? ingredients;
+  final List<Ingredient>? ingredients;
 
   // Getter for picture that automatically proxies via wsrv.nl on Web!
   String? get picture {
     if (_picture == null) return null;
     if (kIsWeb) {
-      return 'https://wsrv.nl/?url=${Uri.encodeComponent(_picture!)}';
+      return 'https://wsrv.nl/?url=${Uri.encodeComponent(_picture)}';
     }
     return _picture;
   }
@@ -61,25 +115,14 @@ class Product {
   /// Parse from the actual OpenFoodFacts API v2 JSON (the `product` object).
   factory Product.fromJson(Map<String, dynamic> json) {
     // --- Ingredients list ---
-    List<String>? ingredientsList;
+    List<Ingredient>? ingredientsList;
     final rawIngredients = json['ingredients'];
     if (rawIngredients is List) {
-      ingredientsList = rawIngredients.map((e) {
-        if (e is Map) {
-          String text = e['text']?.toString() ?? '';
-          String percent = e['percent_estimate']?.toString() ?? e['percent']?.toString() ?? '';
-          if (percent.isNotEmpty && percent != '0' && percent != '0.0') {
-            double? p = double.tryParse(percent);
-            if (p != null) {
-              text += ' (${p.round()}%)';
-            } else {
-              text += ' ($percent%)';
-            }
-          }
-          return text;
-        }
-        return e.toString();
-      }).where((s) => s.isNotEmpty).toList();
+      ingredientsList = rawIngredients
+          .whereType<Map<String, dynamic>>()
+          .map(Ingredient.fromJson)
+          .where((i) => i.text.isNotEmpty)
+          .toList();
     }
 
     // --- Allergens ---

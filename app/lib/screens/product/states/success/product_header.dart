@@ -180,19 +180,22 @@ class ProductNameHeader extends StatelessWidget {
                 style: const TextStyle(
                   fontFamily: 'Avenir',
                   fontWeight: FontWeight.w400,
-                  fontSize: 12.0, // used 12px for readability instead of 10px
-                  color: Color(0xFFBDBDBD),
+                  fontSize: 17.0,
+                  color: Color(0xFFB8BBC6),
+                  letterSpacing: -0.27,
                 ),
               ),
               if (product.altName != null && product.altName!.isNotEmpty) ...[
                 const SizedBox(height: 8.0),
                 Text(
                   product.altName!,
+                  textAlign: TextAlign.center,
                   style: const TextStyle(
                     color: Color(0xFF6A6A6A),
-                    fontSize: 15.0,
+                    fontSize: 17.0,
                     fontFamily: 'Avenir',
                     fontWeight: FontWeight.w400,
+                    letterSpacing: -0.48,
                   ),
                 ),
               ],

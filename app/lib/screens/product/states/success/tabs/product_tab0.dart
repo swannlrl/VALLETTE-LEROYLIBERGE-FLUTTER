@@ -113,7 +113,13 @@ class _Nutriscore extends StatelessWidget {
       children: <Widget>[
         Text(
           AppLocalizations.of(context)!.nutriscore,
-          style: context.theme.title3,
+          style: const TextStyle(
+                    fontFamily: 'Avenir',
+                    fontWeight: FontWeight.w400,
+                    fontSize: 13.0,
+                    color: Color(0xFFB8BBC6),
+                    letterSpacing: -0.21,
+                  ),
         ),
         const SizedBox(height: 5.0),
         if (assetName != null)
@@ -149,7 +155,13 @@ class _NovaGroup extends StatelessWidget {
       children: <Widget>[
         Text(
           AppLocalizations.of(context)!.nova_group,
-          style: context.theme.title3,
+          style: const TextStyle(
+                    fontFamily: 'Avenir',
+                    fontWeight: FontWeight.w400,
+                    fontSize: 13.0,
+                    color: Color(0xFFB8BBC6),
+                    letterSpacing: -0.21,
+                  ),
         ),
         const SizedBox(height: 5.0),
         Row(
@@ -231,7 +243,13 @@ class _GreenScore extends StatelessWidget {
       children: <Widget>[
         Text(
           AppLocalizations.of(context)!.greenscore,
-          style: context.theme.title3,
+          style: const TextStyle(
+                    fontFamily: 'Avenir',
+                    fontWeight: FontWeight.w400,
+                    fontSize: 13.0,
+                    color: Color(0xFFB8BBC6),
+                    letterSpacing: -0.21,
+                  ),
         ),
         const SizedBox(height: 5.0),
         Row(

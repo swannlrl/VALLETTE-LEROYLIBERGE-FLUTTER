@@ -1,12 +1,10 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:formation_flutter/model/product.dart';
 import 'package:formation_flutter/res/app_colors.dart';
 import 'package:formation_flutter/res/app_vectorial_images.dart';
-import 'package:formation_flutter/res/app_theme_extension.dart';
 import 'package:provider/provider.dart';
 import 'package:sliver_tools/sliver_tools.dart';
 
@@ -67,28 +65,30 @@ class _ProductHeaderDelegate extends SliverPersistentHeaderDelegate {
           end: 0.0,
           height: maxHeight - shrinkOffset,
           child: product.picture != null && product.picture!.isNotEmpty
-              ? CachedNetworkImage(
-                  imageUrl: product.picture!,
+              ? Image.network(
+                  product.picture!,
                   width: double.infinity,
                   fit: BoxFit.cover,
-                  colorBlendMode: BlendMode.srcATop,
-                  placeholder: (context, url) => Container(
-                    color: AppColors.grey1,
-                    child: const Center(
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: AppColors.blueDark,
-                      ),
-                    ),
-                  ),
-                  errorWidget: (context, url, error) => Container(
+                  loadingBuilder: (context, child, progress) =>
+                      progress == null
+                          ? child
+                          : Container(
+                              color: AppColors.grey1,
+                              child: const Center(
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: AppColors.blueDark,
+                                ),
+                              ),
+                            ),
+                  errorBuilder: (context, error, stack) => Container(
                     color: AppColors.grey1,
                     child: Center(
                       child: SvgPicture.asset(
                         AppVectorialImages.iconImagePlaceholderAlt,
                         width: 64,
                         height: 64,
-                        colorFilter: ColorFilter.mode(
+                        colorFilter: const ColorFilter.mode(
                           AppColors.grey2,
                           BlendMode.srcIn,
                         ),
@@ -103,7 +103,7 @@ class _ProductHeaderDelegate extends SliverPersistentHeaderDelegate {
                       AppVectorialImages.iconImagePlaceholder,
                       width: 64,
                       height: 64,
-                      colorFilter: ColorFilter.mode(
+                      colorFilter: const ColorFilter.mode(
                         AppColors.grey2,
                         BlendMode.srcIn,
                       ),
@@ -120,7 +120,7 @@ class _ProductHeaderDelegate extends SliverPersistentHeaderDelegate {
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadiusDirectional.vertical(
-                top: Radius.circular(16.0 * (1 - progress)),
+                top: Radius.circular(25.0 * (1 - progress)),
               ),
               boxShadow: <BoxShadow>[
                 BoxShadow(
@@ -130,7 +130,7 @@ class _ProductHeaderDelegate extends SliverPersistentHeaderDelegate {
                 ),
               ],
             ),
-            child: SizedBox(width: double.infinity, height: 16.0),
+            child: const SizedBox(width: double.infinity, height: 25.0),
           ),
         ),
       ],
@@ -164,24 +164,40 @@ class ProductNameHeader extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              Text(product.name ?? '-', style: context.theme.title1),
-              const SizedBox(height: 3.0),
+              Text(
+                product.name ?? '-',
+                style: const TextStyle(
+                  fontFamily: 'Avenir',
+                  fontWeight: FontWeight.w900,
+                  fontSize: 17.0,
+                  color: AppColors.blue,
+                  letterSpacing: -0.48,
+                  height: 1.35,
+                ),
+              ),
+              const SizedBox(height: 4.0),
               Text(
                 product.brands?.join(', ') ?? '-',
-                style: context.theme.title2,
+                style: const TextStyle(
+                  fontFamily: 'Avenir',
+                  fontWeight: FontWeight.w400,
+                  fontSize: 12.0, // used 12px for readability instead of 10px
+                  color: Color(0xFFBDBDBD),
+                ),
               ),
               if (product.altName != null && product.altName!.isNotEmpty) ...[
-                const SizedBox(height: 4.0),
+                const SizedBox(height: 8.0),
                 Text(
                   product.altName!,
                   style: const TextStyle(
-                    color: AppColors.grey3,
-                    fontSize: 14.0,
+                    color: Color(0xFF6A6A6A),
+                    fontSize: 15.0,
                     fontFamily: 'Avenir',
+                    fontWeight: FontWeight.w400,
                   ),
                 ),
               ],
-              const SizedBox(height: 10.0),
+              const SizedBox(height: 15.0),
             ],
           ),
         ),

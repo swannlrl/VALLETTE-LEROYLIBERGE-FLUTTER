@@ -63,77 +63,60 @@ class _ScannerPageState extends State<ScannerPage> {
       ),
       body: Column(
         children: [
-          // Manual barcode input
           Container(
             padding: const EdgeInsets.all(16),
             color: AppColors.grey1,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Row(
               children: [
-                Text(
-                  'Entrez le code-barre manuellement :',
-                  style: TextStyle(
-                    color: AppColors.blueDark,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 15,
+                Expanded(
+                  child: TextField(
+                    controller: _barcodeController,
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      hintText: 'Ex: 3017620422003',
+                      filled: true,
+                      fillColor: AppColors.white,
+                      prefixIcon: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: SvgPicture.asset(
+                          AppVectorialImages.iconBarcode,
+                          colorFilter: const ColorFilter.mode(
+                              AppColors.blueDark, BlendMode.srcIn),
+                          width: 16,
+                        ),
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 14),
+                    ),
+                    onSubmitted: (_) => _onManualSubmit(),
                   ),
                 ),
-                const SizedBox(height: 10),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: _barcodeController,
-                        keyboardType: TextInputType.number,
-                        decoration: InputDecoration(
-                          hintText: 'Ex: 3017620422003',
-                          filled: true,
-                          fillColor: AppColors.white,
-                          prefixIcon: Padding(
-                            padding: const EdgeInsets.all(12),
-                            child: SvgPicture.asset(
-                              AppVectorialImages.iconBarcode,
-                              colorFilter: const ColorFilter.mode(
-                                  AppColors.blueDark, BlendMode.srcIn),
-                              width: 16,
-                            ),
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide.none,
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 14),
-                        ),
-                        onSubmitted: (_) => _onManualSubmit(),
+                const SizedBox(width: 12),
+                SizedBox(
+                  height: 48,
+                  child: ElevatedButton(
+                    onPressed: _onManualSubmit,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.yellow,
+                      foregroundColor: AppColors.blueDark,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
                       ),
+                      elevation: 0,
                     ),
-                    const SizedBox(width: 12),
-                    SizedBox(
-                      height: 48,
-                      child: ElevatedButton(
-                        onPressed: _onManualSubmit,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.yellow,
-                          foregroundColor: AppColors.blueDark,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          elevation: 0,
-                        ),
-                        child: const Text(
-                          'Rechercher',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ),
+                    child: const Text(
+                      'Rechercher',
+                      style: TextStyle(fontWeight: FontWeight.bold),
                     ),
-                  ],
+                  ),
                 ),
               ],
             ),
           ),
-
-          // Camera scanner (web + native via mobile_scanner)
           Expanded(
             child: Stack(
               children: [
@@ -141,7 +124,7 @@ class _ScannerPageState extends State<ScannerPage> {
                   controller: _scannerController,
                   onDetect: _onDetect,
                 ),
-                _ScanOverlay(),
+                const _ScanOverlay(),
               ],
             ),
           ),
@@ -152,6 +135,8 @@ class _ScannerPageState extends State<ScannerPage> {
 }
 
 class _ScanOverlay extends StatelessWidget {
+  const _ScanOverlay();
+
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.sizeOf(context);
@@ -159,7 +144,6 @@ class _ScanOverlay extends StatelessWidget {
 
     return Stack(
       children: [
-        // Dark overlay
         ColorFiltered(
           colorFilter: ColorFilter.mode(
             Colors.black.withValues(alpha: 0.5),
@@ -187,7 +171,6 @@ class _ScanOverlay extends StatelessWidget {
             ],
           ),
         ),
-        // Scan frame corners
         Align(
           alignment: Alignment.center,
           child: SizedBox(
@@ -198,7 +181,6 @@ class _ScanOverlay extends StatelessWidget {
             ),
           ),
         ),
-        // Label
         Positioned(
           bottom: 40,
           left: 0,
@@ -229,16 +211,12 @@ class _CornerPainter extends CustomPainter {
 
     const corner = 24.0;
 
-    // Top-left
     canvas.drawLine(Offset(0, corner), Offset.zero, paint);
     canvas.drawLine(Offset.zero, Offset(corner, 0), paint);
-    // Top-right
     canvas.drawLine(Offset(size.width - corner, 0), Offset(size.width, 0), paint);
     canvas.drawLine(Offset(size.width, 0), Offset(size.width, corner), paint);
-    // Bottom-left
     canvas.drawLine(Offset(0, size.height - corner), Offset(0, size.height), paint);
     canvas.drawLine(Offset(0, size.height), Offset(corner, size.height), paint);
-    // Bottom-right
     canvas.drawLine(Offset(size.width - corner, size.height), Offset(size.width, size.height), paint);
     canvas.drawLine(Offset(size.width, size.height), Offset(size.width, size.height - corner), paint);
   }

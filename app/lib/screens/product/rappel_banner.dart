@@ -21,23 +21,23 @@ class RappelBanner extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
         height: 43,
         decoration: BoxDecoration(
-          color: const Color(0x5CFF0000), // rgba(255, 0, 0, 0.36)
+          color: const Color(0x5CFF0000),
           borderRadius: BorderRadius.circular(10),
         ),
-        child: Row(
+        child: const Row(
           children: [
-            const Expanded(
+            Expanded(
               child: Text(
                 "Ce produit fait l'objet d'un rappel produit",
                 style: TextStyle(
-                  color: Color(0xFFA60000), // rgba(166, 0, 0, 1)
+                  color: Color(0xFFA60000),
                   fontFamily: 'Avenir',
                   fontSize: 12,
                   fontWeight: FontWeight.w800,
                 ),
               ),
             ),
-            const Icon(Icons.arrow_forward, color: Color(0xFFA60000), size: 16),
+            Icon(Icons.arrow_forward, color: Color(0xFFA60000), size: 16),
           ],
         ),
       ),

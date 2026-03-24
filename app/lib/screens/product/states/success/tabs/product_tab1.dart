@@ -3,11 +3,10 @@ import 'package:formation_flutter/model/product.dart';
 import 'package:formation_flutter/res/app_colors.dart';
 import 'package:provider/provider.dart';
 
-/// Onglet Caractéristiques : Ingrédients, Allergènes, Additifs
 class ProductTab1 extends StatelessWidget {
   const ProductTab1({super.key});
 
-  static const double _kHorizontalPadding = 28.0; // From Sketch: 28px right margin
+  static const double _kHorizontalPadding = 28.0;
 
   @override
   Widget build(BuildContext context) {
@@ -17,15 +16,14 @@ class ProductTab1 extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 8.0),
-        // ── Ingrédients ──
         const _SectionDividerTitle(title: 'Ingrédients'),
         if (product.ingredients != null && product.ingredients!.isNotEmpty)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: _kHorizontalPadding),
             child: Column(
-              children: product.ingredients!.map(
-                (ingredient) => _IngredientRow(ingredient: ingredient),
-              ).toList(),
+              children: product.ingredients!
+                  .map((ingredient) => _IngredientRow(ingredient: ingredient))
+                  .toList(),
             ),
           )
         else
@@ -34,8 +32,6 @@ class ProductTab1 extends StatelessWidget {
             child: _EmptyText(text: 'Aucun'),
           ),
         const SizedBox(height: 24),
-
-        // ── Substances allergènes ──
         const _SectionDividerTitle(title: 'Substances allergènes'),
         if (product.allergens != null && product.allergens!.isNotEmpty)
           Padding(
@@ -52,16 +48,14 @@ class ProductTab1 extends StatelessWidget {
             child: _EmptyText(text: 'Aucune'),
           ),
         const SizedBox(height: 24),
-
-        // ── Additifs ──
         const _SectionDividerTitle(title: 'Additifs'),
         if (product.additives != null && product.additives!.isNotEmpty)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: _kHorizontalPadding),
             child: Column(
-              children: product.additives!.keys.map(
-                (additive) => _SimpleRow(text: _capitalize(additive)),
-              ).toList(),
+              children: product.additives!.keys
+                  .map((additive) => _SimpleRow(text: _capitalize(additive)))
+                  .toList(),
             ),
           )
         else
@@ -80,10 +74,6 @@ class ProductTab1 extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────
-// Section header: ────── Titre ──────
-// ─────────────────────────────────────────────
-
 class _SectionDividerTitle extends StatelessWidget {
   const _SectionDividerTitle({required this.title});
 
@@ -100,7 +90,7 @@ class _SectionDividerTitle extends StatelessWidget {
         textAlign: TextAlign.center,
         style: const TextStyle(
           fontSize: 16,
-          fontWeight: FontWeight.w800, // Avenir-Black
+          fontWeight: FontWeight.w800,
           color: AppColors.blue,
           fontFamily: 'Avenir',
         ),
@@ -108,10 +98,6 @@ class _SectionDividerTitle extends StatelessWidget {
     );
   }
 }
-
-// ─────────────────────────────────────────────
-// Ingredient row: name (bold) | value (grey)
-// ─────────────────────────────────────────────
 
 class _IngredientRow extends StatelessWidget {
   const _IngredientRow({required this.ingredient});
@@ -149,7 +135,6 @@ class _IngredientRow extends StatelessWidget {
                   flex: 1,
                   child: Text(
                     value,
-                    textAlign: TextAlign.start,
                     style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
@@ -167,10 +152,6 @@ class _IngredientRow extends StatelessWidget {
     );
   }
 }
-
-// ─────────────────────────────────────────────
-// Simple text row with divider (allergens, additives)
-// ─────────────────────────────────────────────
 
 class _SimpleRow extends StatelessWidget {
   const _SimpleRow({required this.text});
@@ -202,10 +183,6 @@ class _SimpleRow extends StatelessWidget {
     );
   }
 }
-
-// ─────────────────────────────────────────────
-// "Aucun / Aucune" placeholder
-// ─────────────────────────────────────────────
 
 class _EmptyText extends StatelessWidget {
   const _EmptyText({required this.text});

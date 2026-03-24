@@ -47,7 +47,6 @@ class _HomePageState extends State<HomePage> {
         }
       }
 
-      // 1. Show cached products immediately
       final initialItems = <_HistoryItem>[];
       for (final barcode in barcodes) {
         final cached = await ProductCache.getCachedProduct(barcode);
@@ -61,7 +60,6 @@ class _HomePageState extends State<HomePage> {
         });
       }
 
-      // 2. Refresh from API in parallel batches of 3
       for (int batchStart = 0; batchStart < barcodes.length; batchStart += 3) {
         final batchEnd = (batchStart + 3).clamp(0, barcodes.length);
         final batch = barcodes.sublist(batchStart, batchEnd);
@@ -115,26 +113,15 @@ class _HomePageState extends State<HomePage> {
         backgroundColor: AppColors.white,
         elevation: 0,
         actions: [
-          if (_items != null && _items!.isNotEmpty)
-            IconButton(
-              icon: SvgPicture.asset(
-                AppVectorialImages.iconFlame,
-                colorFilter: const ColorFilter.mode(AppColors.blue, BlendMode.srcIn),
-                width: 20,
-                height: 20,
-              ),
-              onPressed: () => context.push('/favorites'),
+          IconButton(
+            icon: SvgPicture.asset(
+              AppVectorialImages.iconFlame,
+              colorFilter: const ColorFilter.mode(AppColors.blue, BlendMode.srcIn),
+              width: 20,
+              height: 20,
             ),
-          if (_items != null && _items!.isNotEmpty)
-            IconButton(
-              icon: SvgPicture.asset(
-                AppVectorialImages.iconList,
-                colorFilter: const ColorFilter.mode(AppColors.blue, BlendMode.srcIn),
-                width: 18,
-                height: 20,
-              ),
-              onPressed: () {},
-            ),
+            onPressed: () => context.push('/favorites'),
+          ),
           if (_items != null && _items!.isNotEmpty)
             IconButton(
               icon: SvgPicture.asset(
@@ -148,15 +135,6 @@ class _HomePageState extends State<HomePage> {
                 _load();
               },
             ),
-          IconButton(
-            icon: SvgPicture.asset(
-              AppVectorialImages.iconStarFilled,
-              colorFilter: const ColorFilter.mode(AppColors.blue, BlendMode.srcIn),
-              width: 26,
-              height: 26,
-            ),
-            onPressed: () => context.push('/favorites'),
-          ),
           IconButton(
             icon: Container(
               width: 26,
@@ -264,8 +242,8 @@ class _HomePageState extends State<HomePage> {
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text(
+                  children: const [
+                    Text(
                       'COMMENCER',
                       style: TextStyle(
                         fontWeight: FontWeight.w800,
@@ -274,8 +252,8 @@ class _HomePageState extends State<HomePage> {
                         letterSpacing: -0.36,
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    const Icon(Icons.arrow_forward, size: 18),
+                    SizedBox(width: 8),
+                    Icon(Icons.arrow_forward, size: 18),
                   ],
                 ),
               ),
@@ -286,8 +264,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 }
-
-
 
 class _HistoryItem {
   final String barcode;

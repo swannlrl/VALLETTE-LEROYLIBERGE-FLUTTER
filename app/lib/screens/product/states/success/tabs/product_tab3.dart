@@ -27,10 +27,7 @@ class ProductTab3 extends StatelessWidget {
 
     final localizations = AppLocalizations.of(context)!;
     final facts = product.nutritionFacts!;
-    final numberFormat = NumberFormat.decimalPatternDigits(
-      locale: 'fr',
-      decimalDigits: 2,
-    );
+    final numberFormat = NumberFormat('#.##', 'fr');
 
     String fmt(dynamic val, String unit) {
       if (val == null) return '?';

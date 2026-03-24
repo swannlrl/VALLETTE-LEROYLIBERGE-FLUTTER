@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:formation_flutter/model/product.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pocketbase/pocketbase.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:formation_flutter/res/app_vectorial_images.dart';
+import 'package:provider/provider.dart';
 
 class RappelBanner extends StatelessWidget {
   const RappelBanner({super.key, required this.record});
@@ -12,32 +12,32 @@ class RappelBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => context.push('/rappel', extra: record),
+      onTap: () => context.push('/rappel', extra: {
+        'record': record,
+        'imageUrl': context.read<Product>().picture ?? '',
+      }),
       child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
-        padding: const EdgeInsets.all(16),
+        margin: const EdgeInsets.only(left: 15, right: 13, bottom: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+        height: 43,
         decoration: BoxDecoration(
-          color: const Color(0xFFFF0000).withValues(alpha: 0.36),
-          borderRadius: BorderRadius.circular(12),
+          color: const Color(0x5CFF0000), // rgba(255, 0, 0, 0.36)
+          borderRadius: BorderRadius.circular(10),
         ),
         child: Row(
           children: [
-            SvgPicture.asset(
-              AppVectorialImages.iconRappelBanner,
-              colorFilter: const ColorFilter.mode(Color(0xFFA60000), BlendMode.srcIn),
-              width: 24,
-            ),
-            const SizedBox(width: 12),
             const Expanded(
               child: Text(
                 "Ce produit fait l'objet d'un rappel produit",
                 style: TextStyle(
-                  color: Color(0xFFA60000),
-                  fontWeight: FontWeight.bold,
+                  color: Color(0xFFA60000), // rgba(166, 0, 0, 1)
+                  fontFamily: 'Avenir',
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
                 ),
               ),
             ),
-            const Icon(Icons.chevron_right, color: Color(0xFFA60000)),
+            const Icon(Icons.arrow_forward, color: Color(0xFFA60000), size: 16),
           ],
         ),
       ),

@@ -63,6 +63,18 @@ class _RegisterPageState extends State<RegisterPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: SvgPicture.asset(
+            AppVectorialImages.iconBackCurved,
+            colorFilter: const ColorFilter.mode(AppColors.blue, BlendMode.srcIn),
+            width: 28,
+          ),
+          onPressed: () => context.pop(),
+        ),
+      ),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 400),
@@ -71,92 +83,137 @@ class _RegisterPageState extends State<RegisterPage> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const SizedBox(height: 48),
-                SvgPicture.asset(
-                  AppVectorialImages.iconUserEdit,
-                  width: 80,
-                  height: 80,
-                  colorFilter: const ColorFilter.mode(AppColors.green, BlendMode.srcIn),
-                ),
-                const SizedBox(height: 24),
-                Text(
+                const SizedBox(height: 20),
+                const Text(
                   'Inscription',
                   style: TextStyle(
-                    color: AppColors.blueDark,
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
+                    color: AppColors.blue,
+                    fontSize: 24,
+                    fontWeight: FontWeight.w800,
                     fontFamily: 'Avenir',
+                    letterSpacing: -0.48,
                   ),
                 ),
-                const SizedBox(height: 40),
+                const SizedBox(height: 60),
                 TextField(
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
+                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
                   decoration: InputDecoration(
                     hintText: 'Adresse email',
+                    hintStyle: const TextStyle(
+                      color: AppColors.grey3,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
                     prefixIcon: Padding(
-                      padding: const EdgeInsets.all(12.0),
+                      padding: const EdgeInsets.only(left: 11, right: 20),
                       child: SvgPicture.asset(
                         AppVectorialImages.iconEmail,
-                        colorFilter: ColorFilter.mode(
+                        height: 20,
+                        colorFilter: const ColorFilter.mode(
                           AppColors.grey2,
                           BlendMode.srcIn,
                         ),
                       ),
                     ),
+                    prefixIconConstraints: const BoxConstraints(minWidth: 40, minHeight: 44),
                     filled: true,
-                    fillColor: AppColors.grey1,
+                    fillColor: AppColors.white,
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: const BorderSide(color: AppColors.grey2, width: 1),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: const BorderSide(color: AppColors.grey2, width: 1),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: const BorderSide(color: AppColors.blue, width: 2),
                     ),
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 14),
                 TextField(
                   controller: _passwordController,
                   obscureText: true,
+                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
                   decoration: InputDecoration(
                     hintText: 'Mot de passe',
+                    hintStyle: const TextStyle(
+                      color: AppColors.grey3,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
                     prefixIcon: Padding(
-                      padding: const EdgeInsets.all(12.0),
+                      padding: const EdgeInsets.only(left: 11, right: 20),
                       child: SvgPicture.asset(
                         AppVectorialImages.iconLock,
-                        colorFilter: ColorFilter.mode(
+                        height: 20,
+                        colorFilter: const ColorFilter.mode(
                           AppColors.grey2,
                           BlendMode.srcIn,
                         ),
                       ),
                     ),
+                    prefixIconConstraints: const BoxConstraints(minWidth: 40, minHeight: 44),
                     filled: true,
-                    fillColor: AppColors.grey1,
+                    fillColor: AppColors.white,
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: const BorderSide(color: AppColors.grey2, width: 1),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: const BorderSide(color: AppColors.grey2, width: 1),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: const BorderSide(color: AppColors.blue, width: 2),
                     ),
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 14),
                 TextField(
                   controller: _confirmController,
                   obscureText: true,
+                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
                   decoration: InputDecoration(
                     hintText: 'Confirmation du mot de passe',
+                    hintStyle: const TextStyle(
+                      color: AppColors.grey3,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
                     prefixIcon: Padding(
-                      padding: const EdgeInsets.all(12.0),
+                      padding: const EdgeInsets.only(left: 11, right: 20),
                       child: SvgPicture.asset(
                         AppVectorialImages.iconLock,
-                        colorFilter: ColorFilter.mode(
+                        height: 20,
+                        colorFilter: const ColorFilter.mode(
                           AppColors.grey2,
                           BlendMode.srcIn,
                         ),
                       ),
                     ),
+                    prefixIconConstraints: const BoxConstraints(minWidth: 40, minHeight: 44),
                     filled: true,
-                    fillColor: AppColors.grey1,
+                    fillColor: AppColors.white,
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: const BorderSide(color: AppColors.grey2, width: 1),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: const BorderSide(color: AppColors.grey2, width: 1),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: const BorderSide(color: AppColors.blue, width: 2),
                     ),
                   ),
                 ),
@@ -165,25 +222,33 @@ class _RegisterPageState extends State<RegisterPage> {
                   const CircularProgressIndicator()
                 else
                   SizedBox(
-                    width: double.infinity,
-                    height: 56,
+                    width: 197,
+                    height: 45,
                     child: ElevatedButton(
                       onPressed: _register,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.yellow,
-                        foregroundColor: AppColors.blueDark,
+                        foregroundColor: AppColors.blue,
+                        padding: EdgeInsets.zero,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
+                          borderRadius: BorderRadius.circular(22),
                         ),
                         elevation: 0,
                       ),
-                      child: const Text(
-                        'CRÉER MON COMPTE',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                          letterSpacing: 1.2,
-                        ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Text(
+                            'S\'INSCRIRE',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w800,
+                              fontSize: 15,
+                              letterSpacing: -0.36,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          const Icon(Icons.arrow_forward, size: 16),
+                        ],
                       ),
                     ),
                   ),
@@ -191,16 +256,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   const SizedBox(height: 16),
                   Text(_error!, style: const TextStyle(color: Colors.red)),
                 ],
-                const SizedBox(height: 40),
-                IconButton(
-                  onPressed: () => context.pop(),
-                  icon: SvgPicture.asset(
-                    AppVectorialImages.iconBackCurved,
-                    colorFilter: ColorFilter.mode(AppColors.blueDark, BlendMode.srcIn),
-                    width: 32,
-                  ),
-                ),
-                const SizedBox(height: 48),
+                const SizedBox(height: 80),
               ],
             ),
           ),

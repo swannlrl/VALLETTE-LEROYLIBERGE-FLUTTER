@@ -159,7 +159,7 @@ class ProductNameHeader extends StatelessWidget {
       child: Material(
         color: Colors.white,
         child: Padding(
-          padding: EdgeInsetsDirectional.only(start: 20.0, end: 20.0),
+          padding: const EdgeInsetsDirectional.only(start: 20.0, end: 20.0),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -170,7 +170,18 @@ class ProductNameHeader extends StatelessWidget {
                 product.brands?.join(', ') ?? '-',
                 style: context.theme.title2,
               ),
-              const SizedBox(height: 8.0),
+              if (product.altName != null && product.altName!.isNotEmpty) ...[
+                const SizedBox(height: 4.0),
+                Text(
+                  product.altName!,
+                  style: const TextStyle(
+                    color: AppColors.grey3,
+                    fontSize: 14.0,
+                    fontFamily: 'Avenir',
+                  ),
+                ),
+              ],
+              const SizedBox(height: 10.0),
             ],
           ),
         ),

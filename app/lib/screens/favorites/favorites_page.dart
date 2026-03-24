@@ -7,6 +7,7 @@ import 'package:formation_flutter/api/pocketbase_api.dart';
 import 'package:formation_flutter/model/product.dart';
 import 'package:formation_flutter/res/app_colors.dart';
 import 'package:formation_flutter/res/app_vectorial_images.dart';
+import 'package:formation_flutter/widgets/product_list_item.dart';
 import 'package:go_router/go_router.dart';
 
 class FavoritesPage extends StatefulWidget {
@@ -93,16 +94,19 @@ class _FavoritesPageState extends State<FavoritesPage> {
         leading: IconButton(
           icon: SvgPicture.asset(
             AppVectorialImages.iconBack,
-            colorFilter: ColorFilter.mode(AppColors.blueDark, BlendMode.srcIn),
+            colorFilter: const ColorFilter.mode(AppColors.blue, BlendMode.srcIn),
             width: 24,
           ),
           onPressed: () => context.pop(),
         ),
-        title: Text(
+        title: const Text(
           'Mes favoris',
           style: TextStyle(
-            color: AppColors.blueDark,
-            fontWeight: FontWeight.bold,
+            color: AppColors.blue,
+            fontWeight: FontWeight.w800,
+            fontFamily: 'Avenir',
+            fontSize: 20,
+            letterSpacing: -0.4,
           ),
         ),
         backgroundColor: AppColors.white,
@@ -122,7 +126,7 @@ class _FavoritesPageState extends State<FavoritesPage> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(_error!, style: TextStyle(color: AppColors.grey3)),
+            Text(_error!, style: const TextStyle(color: AppColors.grey3)),
             const SizedBox(height: 16),
             ElevatedButton(onPressed: _load, child: const Text('Réessayer')),
           ],
@@ -134,7 +138,7 @@ class _FavoritesPageState extends State<FavoritesPage> {
       return Center(
         child: Text(
           'Aucun favori pour le moment',
-          style: TextStyle(color: AppColors.grey3, fontSize: 16),
+          style: const TextStyle(color: AppColors.grey3, fontSize: 16),
         ),
       );
     }
@@ -147,7 +151,7 @@ class _FavoritesPageState extends State<FavoritesPage> {
         separatorBuilder: (_, i) => const SizedBox(height: 12),
         itemBuilder: (context, index) {
           final item = _items![index];
-          return _FavProductCard(
+          return ProductListItem(
             barcode: item.barcode,
             product: item.product,
             onTap: () async {
@@ -161,185 +165,7 @@ class _FavoritesPageState extends State<FavoritesPage> {
   }
 }
 
-class _FavProductCard extends StatelessWidget {
-  final String barcode;
-  final Product? product;
-  final VoidCallback onTap;
 
-  const _FavProductCard({
-    required this.barcode,
-    required this.product,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final p = product;
-
-    return Card(
-      elevation: 2,
-      shadowColor: Colors.black12,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(10),
-          child: Row(
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: SizedBox(
-                  width: 80,
-                  height: 80,
-                  child: p?.picture != null
-                      ? CachedNetworkImage(
-                          imageUrl: p!.picture!,
-                          fit: BoxFit.cover,
-                          placeholder: (context, url) => Container(
-                              color: AppColors.grey1,
-                              child: const Center(
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: AppColors.blueDark,
-                                ),
-                              ),
-                            ),
-                          errorWidget: (context, url, error) => Container(
-                            color: AppColors.grey1,
-                            child: Padding(
-                              padding: const EdgeInsets.all(20.0),
-                              child: SvgPicture.asset(
-                                AppVectorialImages.iconImagePlaceholderAlt,
-                                colorFilter: ColorFilter.mode(
-                                  AppColors.grey2,
-                                  BlendMode.srcIn,
-                                ),
-                              ),
-                            ),
-                          ),
-                        )
-                      : Container(
-                          color: AppColors.grey1,
-                          child: Padding(
-                            padding: const EdgeInsets.all(20.0),
-                            child: SvgPicture.asset(
-                              AppVectorialImages.iconBasketGrey,
-                              colorFilter: ColorFilter.mode(
-                                AppColors.grey2,
-                                BlendMode.srcIn,
-                              ),
-                            ),
-                          ),
-                        ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      p?.name ?? barcode,
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                        color: AppColors.blueDark,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    if (p?.brands != null && p!.brands!.isNotEmpty) ...[
-                      const SizedBox(height: 2),
-                      Text(
-                        p.brands!.first,
-                        style: TextStyle(
-                          color: AppColors.grey3,
-                          fontSize: 14,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                    const SizedBox(height: 6),
-                    _NutriscoreBadge(score: p?.nutriScore),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _NutriscoreBadge extends StatelessWidget {
-  final ProductNutriScore? score;
-
-  const _NutriscoreBadge({this.score});
-
-  @override
-  Widget build(BuildContext context) {
-    final label = switch (score) {
-      ProductNutriScore.A => 'A',
-      ProductNutriScore.B => 'B',
-      ProductNutriScore.C => 'C',
-      ProductNutriScore.D => 'D',
-      ProductNutriScore.E => 'E',
-      _ => null,
-    };
-
-    final color = switch (score) {
-      ProductNutriScore.A => AppColors.nutriscoreA,
-      ProductNutriScore.B => AppColors.nutriscoreB,
-      ProductNutriScore.C => AppColors.nutriscoreC,
-      ProductNutriScore.D => AppColors.nutriscoreD,
-      ProductNutriScore.E => AppColors.nutriscoreE,
-      _ => AppColors.grey2,
-    };
-
-    if (label == null) return const SizedBox.shrink();
-    
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withValues(alpha: 0.2)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-            decoration: BoxDecoration(
-              color: color,
-              borderRadius: BorderRadius.circular(4),
-            ),
-            child: Text(
-              label,
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 12,
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Text(
-            'Nutri-Score',
-            style: TextStyle(
-              color: color,
-              fontWeight: FontWeight.bold,
-              fontSize: 12,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 class _FavItem {
   final String barcode;

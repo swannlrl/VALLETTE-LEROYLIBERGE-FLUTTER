@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
@@ -14,16 +15,18 @@ class ScannerPage extends StatefulWidget {
 
 class _ScannerPageState extends State<ScannerPage> {
   final _barcodeController = TextEditingController();
-  final _scannerController = MobileScannerController(
-    detectionSpeed: DetectionSpeed.noDuplicates,
-    returnImage: false,
-  );
+  final MobileScannerController? _scannerController = kIsWeb
+      ? null
+      : MobileScannerController(
+          detectionSpeed: DetectionSpeed.noDuplicates,
+          returnImage: false,
+        );
   bool _scanned = false;
 
   @override
   void dispose() {
     _barcodeController.dispose();
-    _scannerController.dispose();
+    _scannerController?.dispose();
     super.dispose();
   }
 
@@ -40,10 +43,10 @@ class _ScannerPageState extends State<ScannerPage> {
     if (code == null || code.isEmpty) return;
 
     _scanned = true;
-    _scannerController.stop();
+    _scannerController?.stop();
     context.push('/product', extra: code).then((_) {
       _scanned = false;
-      _scannerController.start();
+      _scannerController?.start();
     });
   }
 
@@ -124,18 +127,53 @@ class _ScannerPageState extends State<ScannerPage> {
             ),
           ),
 
-          // Camera scanner
+          // Camera scanner (native only) or web placeholder
           Expanded(
-            child: Stack(
-              children: [
-                MobileScanner(
-                  controller: _scannerController,
-                  onDetect: _onDetect,
-                ),
-                // Overlay with scan guide
-                _ScanOverlay(),
-              ],
-            ),
+            child: kIsWeb
+                ? Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(32),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.camera_alt_outlined,
+                            size: 64,
+                            color: AppColors.grey2,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Le scanner caméra n\'est pas disponible\nsur la version web.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: AppColors.grey3,
+                              fontSize: 16,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Utilisez le champ ci-dessus pour\nentrer un code-barre manuellement.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: AppColors.blueDark,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 15,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                : Stack(
+                    children: [
+                      MobileScanner(
+                        controller: _scannerController!,
+                        onDetect: _onDetect,
+                      ),
+                      // Overlay with scan guide
+                      _ScanOverlay(),
+                    ],
+                  ),
           ),
         ],
       ),

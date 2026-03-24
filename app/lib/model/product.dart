@@ -1,9 +1,10 @@
+import 'package:flutter/foundation.dart'; // import kIsWeb
 // ignore_for_file: constant_identifier_names
 class Product {
   final String barcode;
   final String? name;
   final String? altName;
-  final String? picture;
+  final String? _picture; // Keep the raw picture internally
   final String? quantity;
   final List<String>? brands;
   final List<String>? manufacturingCountries;
@@ -11,6 +12,15 @@ class Product {
   final ProductNovaScore? novaScore;
   final ProductGreenScore? greenScore;
   final List<String>? ingredients;
+
+  // Getter for picture that automatically proxies via wsrv.nl on Web!
+  String? get picture {
+    if (_picture == null) return null;
+    if (kIsWeb) {
+      return 'https://wsrv.nl/?url=${Uri.encodeComponent(_picture!)}';
+    }
+    return _picture;
+  }
 
   // Eg: "Sucre, <span class=\"allergen\">gluten de blé</span>"
   final String? ingredientsWithAllergens;
@@ -28,7 +38,7 @@ class Product {
     required this.barcode,
     this.name,
     this.altName,
-    this.picture,
+    String? picture, // Accept picture here
     this.quantity,
     this.brands,
     this.manufacturingCountries,
@@ -46,7 +56,7 @@ class Product {
     this.containsPalmOil,
     this.isVegan,
     this.isVegetarian,
-  });
+  }) : _picture = picture; // Assign internally
 
   /// Parse from the actual OpenFoodFacts API v2 JSON (the `product` object).
   factory Product.fromJson(Map<String, dynamic> json) {
@@ -54,10 +64,22 @@ class Product {
     List<String>? ingredientsList;
     final rawIngredients = json['ingredients'];
     if (rawIngredients is List) {
-      ingredientsList = rawIngredients
-          .map((e) => e is Map ? (e['text']?.toString() ?? '') : e.toString())
-          .where((s) => s.isNotEmpty)
-          .toList();
+      ingredientsList = rawIngredients.map((e) {
+        if (e is Map) {
+          String text = e['text']?.toString() ?? '';
+          String percent = e['percent_estimate']?.toString() ?? e['percent']?.toString() ?? '';
+          if (percent.isNotEmpty && percent != '0' && percent != '0.0') {
+            double? p = double.tryParse(percent);
+            if (p != null) {
+              text += ' (${p.round()}%)';
+            } else {
+              text += ' ($percent%)';
+            }
+          }
+          return text;
+        }
+        return e.toString();
+      }).where((s) => s.isNotEmpty).toList();
     }
 
     // --- Allergens ---

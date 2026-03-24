@@ -8,6 +8,7 @@ import 'package:formation_flutter/model/product.dart';
 import 'package:formation_flutter/res/app_colors.dart';
 import 'package:formation_flutter/res/app_icons.dart';
 import 'package:formation_flutter/res/app_vectorial_images.dart';
+import 'package:formation_flutter/widgets/product_list_item.dart';
 import 'package:go_router/go_router.dart';
 
 class HomePage extends StatefulWidget {
@@ -103,35 +104,51 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       backgroundColor: AppColors.white,
       appBar: AppBar(
-        title: Text(
+        title: const Text(
           'Mes scans',
           style: TextStyle(
-            color: AppColors.blueDark,
-            fontWeight: FontWeight.bold,
+            color: AppColors.blue,
+            fontWeight: FontWeight.w800,
+            fontFamily: 'Avenir',
+            fontSize: 20,
+            letterSpacing: -0.4,
           ),
         ),
         backgroundColor: AppColors.white,
         elevation: 0,
         actions: [
-          IconButton(
-            icon: const Icon(AppIcons.tab_barcode),
-            color: AppColors.blueDark,
-            onPressed: () async {
-              await context.push('/scanner');
-              _load();
-            },
-          ),
+          if (_items != null && _items!.isNotEmpty)
+            IconButton(
+              icon: const Icon(AppIcons.barcode, size: 26),
+              color: AppColors.blue,
+              onPressed: () async {
+                await context.push('/scanner');
+                _load();
+              },
+            ),
           IconButton(
             icon: SvgPicture.asset(
               AppVectorialImages.iconStarFilled,
-              colorFilter: const ColorFilter.mode(AppColors.yellow, BlendMode.srcIn),
-              width: 24,
-              height: 24,
+              colorFilter: const ColorFilter.mode(AppColors.blue, BlendMode.srcIn),
+              width: 26,
+              height: 26,
             ),
             onPressed: () => context.push('/favorites'),
           ),
           IconButton(
-            icon: Icon(Icons.exit_to_app, color: AppColors.blueDark),
+            icon: Container(
+              width: 26,
+              height: 26,
+              decoration: BoxDecoration(
+                color: AppColors.blue,
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: const Icon(
+                Icons.arrow_forward,
+                color: AppColors.white,
+                size: 18,
+              ),
+            ),
             onPressed: _logout,
           ),
         ],
@@ -150,7 +167,7 @@ class _HomePageState extends State<HomePage> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(_error!, style: TextStyle(color: AppColors.grey3)),
+            Text(_error!, style: const TextStyle(color: AppColors.grey3)),
             const SizedBox(height: 16),
             ElevatedButton(onPressed: _load, child: const Text('Réessayer')),
           ],
@@ -170,7 +187,7 @@ class _HomePageState extends State<HomePage> {
         separatorBuilder: (_, i) => const SizedBox(height: 12),
         itemBuilder: (context, index) {
           final item = _items![index];
-          return _ProductCard(
+          return ProductListItem(
             barcode: item.barcode,
             product: item.product,
             onTap: () async {
@@ -186,27 +203,29 @@ class _HomePageState extends State<HomePage> {
   Widget _buildEmptyState() {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 48),
+        padding: const EdgeInsets.symmetric(horizontal: 32),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             SvgPicture.asset(
               AppVectorialImages.illEmpty,
-              width: 200,
+              width: 250,
             ),
-            const SizedBox(height: 24),
-            Text(
+            const SizedBox(height: 32),
+            const Text(
               'Vous n\'avez pas encore\nscanné de produit',
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: AppColors.grey3,
+                color: AppColors.blue,
                 fontSize: 16,
+                fontWeight: FontWeight.w500,
+                fontFamily: 'Avenir',
               ),
             ),
             const SizedBox(height: 32),
             SizedBox(
-              width: double.infinity,
-              height: 48,
+              width: 250,
+              height: 45,
               child: ElevatedButton(
                 onPressed: () async {
                   await context.push('/scanner');
@@ -214,24 +233,27 @@ class _HomePageState extends State<HomePage> {
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.yellow,
-                  foregroundColor: AppColors.blueDark,
+                  foregroundColor: AppColors.blue,
+                  padding: EdgeInsets.zero,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(24),
+                    borderRadius: BorderRadius.circular(22),
                   ),
                   elevation: 0,
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(
+                    const Text(
                       'COMMENCER',
                       style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 15,
+                        fontFamily: 'Avenir',
+                        letterSpacing: -0.36,
                       ),
                     ),
-                    SizedBox(width: 8),
-                    Icon(Icons.arrow_forward, size: 20),
+                    const SizedBox(width: 8),
+                    const Icon(Icons.arrow_forward, size: 18),
                   ],
                 ),
               ),
@@ -243,191 +265,7 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
-// ============================================================
-// Shared product card widget
-// ============================================================
 
-class _ProductCard extends StatelessWidget {
-  final String barcode;
-  final Product? product;
-  final VoidCallback onTap;
-
-  const _ProductCard({
-    required this.barcode,
-    required this.product,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final p = product;
-
-    return Card(
-      elevation: 2,
-      shadowColor: Colors.black12,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(10),
-          child: Row(
-            children: [
-              // Product image
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: SizedBox(
-                  width: 80,
-                  height: 80,
-                  child: p?.picture != null
-                      ? CachedNetworkImage(
-                          imageUrl: p!.picture!,
-                          fit: BoxFit.cover,
-                          placeholder: (context, url) => Container(
-                              color: AppColors.grey1,
-                              child: const Center(
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: AppColors.blueDark,
-                                ),
-                              ),
-                            ),
-                          errorWidget: (context, url, error) => Container(
-                            color: AppColors.grey1,
-                            child: Padding(
-                              padding: const EdgeInsets.all(20.0),
-                              child: SvgPicture.asset(
-                                AppVectorialImages.iconImagePlaceholderAlt,
-                                colorFilter: ColorFilter.mode(
-                                  AppColors.grey2,
-                                  BlendMode.srcIn,
-                                ),
-                              ),
-                            ),
-                          ),
-                        )
-                      : Container(
-                          color: AppColors.grey1,
-                          child: Padding(
-                            padding: const EdgeInsets.all(20.0),
-                            child: SvgPicture.asset(
-                              AppVectorialImages.iconImagePlaceholder,
-                              colorFilter: ColorFilter.mode(
-                                AppColors.grey2,
-                                BlendMode.srcIn,
-                              ),
-                            ),
-                          ),
-                        ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              // Product info
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      p?.name ?? barcode,
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                        color: AppColors.blueDark,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    if (p?.brands != null && p!.brands!.isNotEmpty) ...[
-                      const SizedBox(height: 2),
-                      Text(
-                        p.brands!.first,
-                        style: TextStyle(
-                          color: AppColors.grey3,
-                          fontSize: 14,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                    const SizedBox(height: 6),
-                    _NutriscoreBadge(score: p?.nutriScore),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _NutriscoreBadge extends StatelessWidget {
-  final ProductNutriScore? score;
-
-  const _NutriscoreBadge({this.score});
-
-  @override
-  Widget build(BuildContext context) {
-    final label = switch (score) {
-      ProductNutriScore.A => 'A',
-      ProductNutriScore.B => 'B',
-      ProductNutriScore.C => 'C',
-      ProductNutriScore.D => 'D',
-      ProductNutriScore.E => 'E',
-      _ => null,
-    };
-
-    final color = switch (score) {
-      ProductNutriScore.A => AppColors.nutriscoreA,
-      ProductNutriScore.B => AppColors.nutriscoreB,
-      ProductNutriScore.C => AppColors.nutriscoreC,
-      ProductNutriScore.D => AppColors.nutriscoreD,
-      ProductNutriScore.E => AppColors.nutriscoreE,
-      _ => AppColors.grey2,
-    };
-
-    if (label == null) return const SizedBox.shrink();
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withValues(alpha: 0.2)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-            decoration: BoxDecoration(
-              color: color,
-              borderRadius: BorderRadius.circular(4),
-            ),
-            child: Text(
-              label,
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 12,
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Text(
-            'Nutri-Score',
-            style: TextStyle(
-              color: color,
-              fontWeight: FontWeight.bold,
-              fontSize: 12,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 class _HistoryItem {
   final String barcode;

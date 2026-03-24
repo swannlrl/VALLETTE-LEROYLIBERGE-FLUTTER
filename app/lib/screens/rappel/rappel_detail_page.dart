@@ -44,12 +44,16 @@ class RappelDetailPage extends StatelessWidget {
         ),
         actions: [
           // Bouton partage
-          if (lienPdf.isNotEmpty)
-            IconButton(
-              icon: const Icon(Icons.share),
-              tooltip: 'Partager',
-              onPressed: () => Share.share('Rappel produit : $titre\n$lienPdf'),
-            ),
+          IconButton(
+            icon: const Icon(Icons.share),
+            tooltip: 'Partager',
+            onPressed: () {
+              final text = lienPdf.isNotEmpty 
+                  ? 'Rappel produit : $titre\n$lienPdf' 
+                  : 'Rappel produit : $titre';
+              Share.share(text);
+            },
+          ),
           if (lienPdf.isNotEmpty)
             IconButton(
               icon: const Icon(Icons.picture_as_pdf),

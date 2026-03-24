@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:formation_flutter/l10n/app_localizations.dart';
 import 'package:formation_flutter/model/product.dart';
 import 'package:formation_flutter/res/app_colors.dart';
-import 'package:formation_flutter/res/app_vectorial_images.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 
 /// Onglet Caractéristiques : Ingrédients, Allergènes, Additifs
@@ -15,167 +12,212 @@ class ProductTab1 extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Product product = context.watch<Product>();
-    final localizations = AppLocalizations.of(context)!;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: _kHorizontalPadding),
+      padding: const EdgeInsets.symmetric(
+        horizontal: _kHorizontalPadding,
+        vertical: 8.0,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // ── Ingrédients ──
-          if (product.ingredients != null && product.ingredients!.isNotEmpty) ...[
-            _SectionTitle(
-              title: localizations.product_tab_properties,
-              icon: AppVectorialImages.iconLocation,
-            ),
-            const SizedBox(height: 8),
+          const _SectionDividerTitle(title: 'Ingrédients'),
+          const SizedBox(height: 12),
+          if (product.ingredients != null && product.ingredients!.isNotEmpty)
             ...product.ingredients!.map(
-              (ingredient) => Padding(
-                padding: const EdgeInsets.symmetric(vertical: 2),
-                child: Text(
-                  ingredient,
-                  style: const TextStyle(fontSize: 15, color: AppColors.blue),
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-          ],
+              (ingredient) => _IngredientRow(text: ingredient),
+            )
+          else
+            const _EmptyText(text: 'Aucun'),
+          const SizedBox(height: 24),
 
-          // ── Allergènes ──
-          if (product.allergens != null && product.allergens!.isNotEmpty) ...[
-            const _SectionTitle(title: 'Allergènes'),
-            const SizedBox(height: 8),
+          // ── Substances allergènes ──
+          const _SectionDividerTitle(title: 'Substances allergènes'),
+          const SizedBox(height: 12),
+          if (product.allergens != null && product.allergens!.isNotEmpty)
             Wrap(
               spacing: 8,
-              runSpacing: 8,
+              runSpacing: 6,
               children: product.allergens!
                   .map(
-                    (allergen) => Chip(
-                      label: Text(
-                        allergen,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 13,
-                        ),
-                      ),
-                      backgroundColor: Colors.red[400],
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 2),
-                    ),
+                    (allergen) => _AllergenChip(label: _capitalize(allergen)),
                   )
                   .toList(),
-            ),
-            const SizedBox(height: 20),
-          ],
-
-          // ── Traces éventuelles ──
-          if (product.traces != null && product.traces!.isNotEmpty) ...[
-            const _SectionTitle(
-              title: 'Traces éventuelles',
-              icon: AppVectorialImages.iconStarOrange,
-            ),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: product.traces!
-                  .map(
-                    (trace) => Chip(
-                      label: Text(
-                        trace,
-                        style: const TextStyle(fontSize: 13),
-                      ),
-                      backgroundColor: Colors.orange[100],
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 2),
-                    ),
-                  )
-                  .toList(),
-            ),
-            const SizedBox(height: 20),
-          ],
+            )
+          else
+            const _EmptyText(text: 'Aucune'),
+          const SizedBox(height: 24),
 
           // ── Additifs ──
-          if (product.additives != null && product.additives!.isNotEmpty) ...[
-            const _SectionTitle(title: 'Additifs'),
-            const SizedBox(height: 8),
-            ...product.additives!.entries.map(
-              (entry) => Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      entry.key.toUpperCase(),
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.blue,
-                        fontSize: 14,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        entry.value,
-                        style: TextStyle(
-                          color: AppColors.grey3,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-          ],
-
-          // Si aucune donnée
-          if ((product.ingredients == null || product.ingredients!.isEmpty) &&
-              (product.allergens == null || product.allergens!.isEmpty) &&
-              (product.additives == null || product.additives!.isEmpty))
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.all(32),
-                child: Text(
-                  'Aucune caractéristique disponible',
-                  style: TextStyle(color: AppColors.grey2, fontSize: 16),
-                ),
-              ),
-            ),
+          const _SectionDividerTitle(title: 'Additifs'),
+          const SizedBox(height: 12),
+          if (product.additives != null && product.additives!.isNotEmpty)
+            ...product.additives!.keys.map(
+              (additive) => _IngredientRow(text: _capitalize(additive)),
+            )
+          else
+            const _EmptyText(text: 'Aucun'),
+          const SizedBox(height: 24),
         ],
       ),
     );
   }
+
+  String _capitalize(String s) {
+    if (s.isEmpty) return s;
+    return s[0].toUpperCase() + s.substring(1);
+  }
 }
 
-class _SectionTitle extends StatelessWidget {
-  const _SectionTitle({required this.title, this.icon});
+// ─────────────────────────────────────────────
+// Section header: ────── Titre ──────
+// ─────────────────────────────────────────────
+
+class _SectionDividerTitle extends StatelessWidget {
+  const _SectionDividerTitle({required this.title});
+
   final String title;
-  final String? icon;
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
-        if (icon != null) ...[
-          SvgPicture.asset(
-            icon!,
-            width: 18,
-            height: 18,
-            colorFilter: const ColorFilter.mode(AppColors.blue, BlendMode.srcIn),
+        const Expanded(
+          child: Divider(
+            color: AppColors.blue,
+            thickness: 1,
+            endIndent: 10,
           ),
-          const SizedBox(width: 8),
-        ],
+        ),
         Text(
           title,
           style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
             color: AppColors.blue,
+            fontFamily: 'Avenir',
+          ),
+        ),
+        const Expanded(
+          child: Divider(
+            color: AppColors.blue,
+            thickness: 1,
+            indent: 10,
           ),
         ),
       ],
+    );
+  }
+}
+
+// ─────────────────────────────────────────────
+// Ingredient row: name (bold) | value (grey)
+// ─────────────────────────────────────────────
+
+class _IngredientRow extends StatelessWidget {
+  const _IngredientRow({required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    // Try to split "Légumes (41%)" → name="Légumes", value="41%"
+    final parenMatch = RegExp(r'^(.*?)\s*\((.+)\)$').firstMatch(text);
+    final String name =
+        parenMatch != null ? parenMatch.group(1)!.trim() : text.trim();
+    final String? value = parenMatch?.group(2)?.trim();
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8.0),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                flex: 5,
+                child: Text(
+                  name,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight:
+                        value != null ? FontWeight.w600 : FontWeight.w400,
+                    color: AppColors.blue,
+                  ),
+                ),
+              ),
+              if (value != null) ...[
+                const SizedBox(width: 8),
+                Expanded(
+                  flex: 4,
+                  child: Text(
+                    value,
+                    textAlign: TextAlign.end,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: AppColors.grey3,
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+        const Divider(height: 1, color: AppColors.grey1),
+      ],
+    );
+  }
+}
+
+// ─────────────────────────────────────────────
+// Allergen chip
+// ─────────────────────────────────────────────
+
+class _AllergenChip extends StatelessWidget {
+  const _AllergenChip({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFECEC),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFE05252), width: 1),
+      ),
+      child: Text(
+        label,
+        style: const TextStyle(
+          color: Color(0xFFE05252),
+          fontSize: 13,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────
+// "Aucun / Aucune" placeholder
+// ─────────────────────────────────────────────
+
+class _EmptyText extends StatelessWidget {
+  const _EmptyText({required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      text,
+      style: const TextStyle(
+        color: AppColors.grey2,
+        fontSize: 14,
+      ),
     );
   }
 }

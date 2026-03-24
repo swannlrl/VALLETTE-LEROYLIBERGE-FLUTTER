@@ -25,6 +25,7 @@ dependencies:
   pocketbase: ^0.23.2
   url_launcher: ^6.2.0
   mobile_scanner: ^6.0.2
+  cupertino_icons: ^1.0.8
   openfoodfacts: ^3.0.1
   share_plus: ^10.1.4
   shared_preferences: ^2.5.4

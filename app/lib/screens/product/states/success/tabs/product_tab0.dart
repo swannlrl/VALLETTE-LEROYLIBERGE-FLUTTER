@@ -381,9 +381,12 @@ class _ProductBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool isOn = value == _ProductBubbleValue.on;
+    final Color bg = isOn ? AppColors.blueLight : const Color(0xFFE05252);
+
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.blueLight,
+        color: bg,
         borderRadius: BorderRadius.circular(10.0),
       ),
       padding: const EdgeInsetsDirectional.symmetric(
@@ -394,14 +397,20 @@ class _ProductBubble extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
           Icon(
-            value == _ProductBubbleValue.on
-                ? AppIcons.checkmark
-                : AppIcons.close,
+            isOn ? AppIcons.checkmark : AppIcons.close,
             color: AppColors.white,
+            size: 16.0,
           ),
-          const SizedBox(width: 10.0),
+          const SizedBox(width: 8.0),
           Expanded(
-            child: Text(label, style: const TextStyle(color: AppColors.white)),
+            child: Text(
+              label,
+              style: const TextStyle(
+                color: AppColors.white,
+                fontSize: 13.0,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
           ),
         ],
       ),

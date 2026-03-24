@@ -4,11 +4,9 @@ import 'package:formation_flutter/res/app_colors.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
-/// Onglet Nutrition : repères nutritionnels par 100g avec niveaux et valeurs
+/// Onglet Nutrition : repères nutritionnels par 100g
 class ProductTab2 extends StatelessWidget {
   const ProductTab2({super.key});
-
-  static const double _kHorizontalPadding = 20.0;
 
   @override
   Widget build(BuildContext context) {
@@ -17,9 +15,9 @@ class ProductTab2 extends StatelessWidget {
     final nutritionFacts = product.nutritionFacts;
 
     if (nutrientLevels == null) {
-      return Center(
+      return const Center(
         child: Padding(
-          padding: const EdgeInsets.all(32),
+          padding: EdgeInsets.all(32),
           child: Text(
             'Aucune donnée nutritionnelle disponible',
             style: TextStyle(color: AppColors.grey2, fontSize: 16),
@@ -28,49 +26,41 @@ class ProductTab2 extends StatelessWidget {
       );
     }
 
-    final numberFormat = NumberFormat.decimalPatternDigits(
-      locale: 'fr',
-      decimalDigits: 2,
-    );
+    final fmt = NumberFormat('#.##', 'fr'); // Ex: 0,8g / 0,75g (sans zéros inutiles)
 
-    String formatVal(Nutriment? n) {
+    String fmtVal(Nutriment? n) {
       if (n?.per100g == null) return '';
       final v = n!.per100g;
-      if (v is num) {
-        // remove trailing zeros: 0.10 → 0,1
-        final formatted = numberFormat.format(v);
-        return '$formatted ${n.unit}';
-      }
-      return '$v ${n.unit}';
+      return v is num ? '${fmt.format(v)}${n.unit}' : '$v${n.unit}';
     }
 
     final rows = <_NutrientEntry>[
       _NutrientEntry(
         label: 'Matières grasses / lipides',
         level: nutrientLevels.fat,
-        value: formatVal(nutritionFacts?.fat),
+        value: fmtVal(nutritionFacts?.fat),
       ),
       _NutrientEntry(
         label: 'Acides gras saturés',
         level: nutrientLevels.saturatedFat,
-        value: formatVal(nutritionFacts?.saturatedFat),
+        value: fmtVal(nutritionFacts?.saturatedFat),
       ),
       _NutrientEntry(
         label: 'Sucres',
         level: nutrientLevels.sugars,
-        value: formatVal(nutritionFacts?.sugar),
+        value: fmtVal(nutritionFacts?.sugar),
       ),
       _NutrientEntry(
         label: 'Sel',
         level: nutrientLevels.salt,
-        value: formatVal(nutritionFacts?.salt),
+        value: fmtVal(nutritionFacts?.salt),
       ),
     ].where((e) => e.level != null).toList();
 
     if (rows.isEmpty) {
-      return Center(
+      return const Center(
         child: Padding(
-          padding: const EdgeInsets.all(32),
+          padding: EdgeInsets.all(32),
           child: Text(
             'Aucune donnée nutritionnelle disponible',
             style: TextStyle(color: AppColors.grey2, fontSize: 16),
@@ -79,12 +69,12 @@ class ProductTab2 extends StatelessWidget {
       );
     }
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: _kHorizontalPadding),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          const Text(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const Padding(
+          padding: EdgeInsets.only(bottom: 16),
+          child: Text(
             'Repères nutritionnels pour 100g',
             textAlign: TextAlign.center,
             style: TextStyle(
@@ -93,31 +83,10 @@ class ProductTab2 extends StatelessWidget {
               fontFamily: 'Avenir',
             ),
           ),
-          const SizedBox(height: 16),
-          Container(
-            decoration: BoxDecoration(
-              border: Border.all(color: AppColors.blue, width: 1.5),
-              borderRadius: BorderRadius.circular(4),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                for (int i = 0; i < rows.length; i++) ...[
-                  if (i > 0)
-                    const Divider(
-                      height: 1,
-                      thickness: 1,
-                      color: AppColors.grey1,
-                      indent: 0,
-                      endIndent: 0,
-                    ),
-                  _NutrientRow(entry: rows[i]),
-                ],
-              ],
-            ),
-          ),
-        ],
-      ),
+        ),
+        const Divider(height: 1, thickness: 1, color: AppColors.grey1),
+        ...rows.map((entry) => _NutrientRow(entry: entry)),
+      ],
     );
   }
 }
@@ -126,17 +95,11 @@ class _NutrientEntry {
   final String label;
   final String? level;
   final String value;
-
-  const _NutrientEntry({
-    required this.label,
-    required this.level,
-    required this.value,
-  });
+  const _NutrientEntry({required this.label, required this.level, required this.value});
 }
 
 class _NutrientRow extends StatelessWidget {
   const _NutrientRow({required this.entry});
-
   final _NutrientEntry entry;
 
   @override
@@ -162,46 +125,54 @@ class _NutrientRow extends StatelessWidget {
         levelText = 'Non renseigné';
     }
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              entry.label,
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: AppColors.blue,
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            mainAxisSize: MainAxisSize.min,
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(21, 14, 28, 14),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (entry.value.isNotEmpty)
-                Text(
-                  entry.value,
+              Expanded(
+                child: Text(
+                  entry.label,
                   style: const TextStyle(
                     fontSize: 14,
-                    fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.w600,
                     color: AppColors.blue,
                   ),
                 ),
-              Text(
-                levelText,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: levelColor,
-                  fontWeight: FontWeight.w500,
-                ),
+              ),
+              const SizedBox(width: 12),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  if (entry.value.isNotEmpty)
+                    Text(
+                      entry.value,
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                        color: levelColor,
+                        fontFamily: 'Avenir',
+                      ),
+                    ),
+                  Text(
+                    levelText,
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: levelColor,
+                      fontWeight: FontWeight.w500,
+                      fontFamily: 'Avenir',
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
-        ],
-      ),
+        ),
+        const Divider(height: 1, thickness: 1, color: AppColors.grey1),
+      ],
     );
   }
 }

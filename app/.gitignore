@@ -44,3 +44,10 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 !/.claude/
+
+# Temporary test/debug files
+test_api*.dart
+test_pb*.dart
+test_rappels*.dart
+find_ecoscore.dart
+analysis_output.txt

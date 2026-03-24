@@ -362,8 +362,28 @@ class _ProductItemValue extends StatelessWidget {
           padding: const EdgeInsetsDirectional.symmetric(vertical: 12.0),
           child: Row(
             children: <Widget>[
-              Expanded(child: Text(label)),
-              Expanded(child: Text(value, textAlign: TextAlign.end)),
+              Expanded(
+                child: Text(
+                  label,
+                  style: const TextStyle(
+                    fontFamily: 'Avenir',
+                    color: AppColors.blue,
+                    fontSize: 13.0,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              Expanded(
+                child: Text(
+                  value,
+                  textAlign: TextAlign.end,
+                  style: const TextStyle(
+                    fontFamily: 'Avenir',
+                    color: AppColors.grey3,
+                    fontSize: 13.0,
+                  ),
+                ),
+              ),
             ],
           ),
         ),

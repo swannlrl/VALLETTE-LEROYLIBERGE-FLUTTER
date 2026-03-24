@@ -3,6 +3,7 @@ import 'package:formation_flutter/res/app_colors.dart';
 import 'package:formation_flutter/res/app_icons.dart';
 import 'package:formation_flutter/res/app_vectorial_images.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:formation_flutter/model/product.dart';
 import 'package:formation_flutter/screens/product/rappel_fetcher.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -190,7 +191,10 @@ class ProductTabRecalls extends StatelessWidget {
           SizedBox(
             width: double.infinity,
             child: TextButton(
-              onPressed: () => context.push('/rappel', extra: record),
+              onPressed: () => context.push('/rappel', extra: {
+                'record': record,
+                'imageUrl': context.read<Product>().picture ?? '',
+              }),
               child: const Text(
                 'Voir la fiche complète',
                 style: TextStyle(color: AppColors.blue),

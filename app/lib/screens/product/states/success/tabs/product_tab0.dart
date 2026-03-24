@@ -402,15 +402,12 @@ class _ProductBubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool isOn = value == _ProductBubbleValue.on;
-    final Color bg = isOn
-        ? const Color(0xFF2CC2DC) // rgba(44, 194, 220, 1)
-        : const Color(0xFFE05252);
 
     return Container(
       width: 125,
       height: 28,
       decoration: BoxDecoration(
-        color: bg,
+        color: const Color(0xFF2CC2DC), // rgba(44, 194, 220, 1)
         borderRadius: BorderRadius.circular(8.5),
       ),
       child: Row(

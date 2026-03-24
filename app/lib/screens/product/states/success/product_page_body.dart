@@ -10,7 +10,6 @@ import 'package:formation_flutter/screens/product/states/success/tabs/product_ta
 import 'package:formation_flutter/screens/product/states/success/tabs/product_tab1.dart';
 import 'package:formation_flutter/screens/product/states/success/tabs/product_tab2.dart';
 import 'package:formation_flutter/screens/product/states/success/tabs/product_tab3.dart';
-import 'package:formation_flutter/screens/product/states/success/tabs/product_tab_recalls.dart';
 import 'package:provider/provider.dart';
 
 class ProductPageBody extends StatefulWidget {
@@ -43,7 +42,7 @@ class _ProductPageBodyState extends State<ProductPageBody> {
               slivers: <Widget>[
                 ProductPageHeader(),
 
-                // Bandeau rappel produit (juste avant les scores)
+                // Bandeau rappel produit
                 SliverToBoxAdapter(
                   child: Consumer<RappelFetcher>(
                     builder: (context, rappelNotifier, _) {
@@ -58,7 +57,7 @@ class _ProductPageBodyState extends State<ProductPageBody> {
                 ),
 
                 SliverPadding(
-                  padding: EdgeInsetsDirectional.only(top: 10.0),
+                  padding: const EdgeInsetsDirectional.only(top: 10.0),
                   sliver: SliverFillRemaining(
                     fillOverscroll: true,
                     hasScrollBody: false,
@@ -110,10 +109,6 @@ class _ProductPageBodyState extends State<ProductPageBody> {
           offstage: _tab != ProductDetailsCurrentTab.nutritionalValues,
           child: ProductTab3(),
         ),
-        Offstage(
-          offstage: _tab != ProductDetailsCurrentTab.recalls,
-          child: const ProductTabRecalls(),
-        ),
       ],
     );
   }
@@ -123,8 +118,7 @@ enum ProductDetailsCurrentTab {
   summary(AppIcons.tab_barcode),
   info(AppIcons.tab_fridge),
   nutrition(AppIcons.tab_nutrition),
-  nutritionalValues(AppIcons.tab_array),
-  recalls(Icons.warning_amber_rounded);
+  nutritionalValues(AppIcons.tab_array);
 
   const ProductDetailsCurrentTab(this.icon);
 
@@ -133,10 +127,7 @@ enum ProductDetailsCurrentTab {
   String label(AppLocalizations appLocalizations) => switch (this) {
     ProductDetailsCurrentTab.summary => appLocalizations.product_tab_summary,
     ProductDetailsCurrentTab.info => appLocalizations.product_tab_properties,
-    ProductDetailsCurrentTab.nutrition =>
-      appLocalizations.product_tab_nutrition,
-    ProductDetailsCurrentTab.nutritionalValues =>
-      appLocalizations.product_tab_nutrition_facts,
-    ProductDetailsCurrentTab.recalls => 'Rappels',
+    ProductDetailsCurrentTab.nutrition => appLocalizations.product_tab_nutrition,
+    ProductDetailsCurrentTab.nutritionalValues => appLocalizations.product_tab_nutrition_facts,
   };
 }

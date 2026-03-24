@@ -115,10 +115,10 @@ class _HomePageState extends State<HomePage> {
         actions: [
           IconButton(
             icon: SvgPicture.asset(
-              AppVectorialImages.iconFlame,
+              AppVectorialImages.iconStarFilled,
               colorFilter: const ColorFilter.mode(AppColors.blue, BlendMode.srcIn),
-              width: 20,
-              height: 20,
+              width: 26,
+              height: 26,
             ),
             onPressed: () => context.push('/favorites'),
           ),

@@ -112,6 +112,7 @@ class ProductTab3 extends StatelessWidget {
                     localizations.product_nutrition_facts_per_100g,
                     textAlign: TextAlign.center,
                     style: const TextStyle(
+                      fontFamily: 'Avenir',
                       fontSize: 12,
                       color: AppColors.grey3,
                       fontWeight: FontWeight.w600,
@@ -124,6 +125,7 @@ class ProductTab3 extends StatelessWidget {
                     localizations.product_nutrition_facts_per_serving,
                     textAlign: TextAlign.center,
                     style: const TextStyle(
+                      fontFamily: 'Avenir',
                       fontSize: 12,
                       color: AppColors.grey3,
                       fontWeight: FontWeight.w600,
@@ -178,6 +180,7 @@ class _NutritionTableRow extends StatelessWidget {
                 child: Text(
                   row.label,
                   style: TextStyle(
+                    fontFamily: 'Avenir',
                     fontSize: 14,
                     color: AppColors.blue,
                     fontWeight: row.isSubItem ? FontWeight.w400 : FontWeight.w500,
@@ -191,6 +194,7 @@ class _NutritionTableRow extends StatelessWidget {
                   row.per100g,
                   textAlign: TextAlign.center,
                   style: const TextStyle(
+                    fontFamily: 'Avenir',
                     fontSize: 14,
                     color: AppColors.blue,
                   ),
@@ -202,6 +206,7 @@ class _NutritionTableRow extends StatelessWidget {
                   row.perServing,
                   textAlign: TextAlign.center,
                   style: const TextStyle(
+                    fontFamily: 'Avenir',
                     fontSize: 14,
                     color: AppColors.grey3,
                   ),

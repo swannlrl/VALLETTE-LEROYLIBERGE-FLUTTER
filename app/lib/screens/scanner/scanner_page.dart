@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:simple_barcode_scanner/simple_barcode_scanner.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:formation_flutter/res/app_vectorial_images.dart';
 import 'package:formation_flutter/res/app_colors.dart';
@@ -14,11 +14,37 @@ class ScannerPage extends StatefulWidget {
 
 class _ScannerPageState extends State<ScannerPage> {
   final _barcodeController = TextEditingController();
+  final _scannerController = MobileScannerController(
+    detectionSpeed: DetectionSpeed.noDuplicates,
+    returnImage: false,
+  );
+  bool _scanned = false;
+
+  @override
+  void dispose() {
+    _barcodeController.dispose();
+    _scannerController.dispose();
+    super.dispose();
+  }
 
   void _onManualSubmit() {
     final code = _barcodeController.text.trim();
     if (code.isEmpty) return;
     context.push('/product', extra: code);
+  }
+
+  void _onDetect(BarcodeCapture capture) {
+    if (_scanned) return;
+    final barcode = capture.barcodes.firstOrNull;
+    final code = barcode?.rawValue;
+    if (code == null || code.isEmpty) return;
+
+    _scanned = true;
+    _scannerController.stop();
+    context.push('/product', extra: code).then((_) {
+      _scanned = false;
+      _scannerController.start();
+    });
   }
 
   @override
@@ -98,58 +124,117 @@ class _ScannerPageState extends State<ScannerPage> {
             ),
           ),
 
-          // Camera Launch Button
+          // Camera scanner
           Expanded(
-            child: Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  SvgPicture.asset(
-                    AppVectorialImages.iconBasket,
-                    width: 120,
-                    height: 120,
-                    colorFilter: const ColorFilter.mode(
-                      AppColors.grey2,
-                      BlendMode.srcIn,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  const Text(
-                    'Utilisez la caméra de votre appareil\npour scanner un code-barre.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: AppColors.grey3,
-                      fontSize: 16,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  ElevatedButton.icon(
-                    onPressed: () async {
-                      final router = GoRouter.of(context);
-                      final res = await SimpleBarcodeScanner.scanBarcode(
-                        context,
-                        lineColor: '#ff6666',
-                        cancelButtonText: 'Annuler',
-                        isShowFlashIcon: true,
-                      );
-                      if (!mounted) return;
-                      if (res is String && res != '-1' && res.isNotEmpty) {
-                        router.push('/product', extra: res);
-                      }
-                    },
-                    icon: const Icon(Icons.camera_alt),
-                    label: const Text('Ouvrir le scanner'),
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                      textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ],
-              ),
+            child: Stack(
+              children: [
+                MobileScanner(
+                  controller: _scannerController,
+                  onDetect: _onDetect,
+                ),
+                // Overlay with scan guide
+                _ScanOverlay(),
+              ],
             ),
           ),
         ],
       ),
     );
   }
+}
+
+class _ScanOverlay extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final size = MediaQuery.sizeOf(context);
+    final scanAreaSize = size.width * 0.65;
+
+    return Stack(
+      children: [
+        // Dark overlay
+        ColorFiltered(
+          colorFilter: ColorFilter.mode(
+            Colors.black.withValues(alpha: 0.5),
+            BlendMode.srcOut,
+          ),
+          child: Stack(
+            children: [
+              Container(
+                decoration: const BoxDecoration(
+                  color: Colors.black,
+                  backgroundBlendMode: BlendMode.dstOut,
+                ),
+              ),
+              Align(
+                alignment: Alignment.center,
+                child: Container(
+                  width: scanAreaSize,
+                  height: scanAreaSize,
+                  decoration: BoxDecoration(
+                    color: Colors.black,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        // Scan frame corners
+        Align(
+          alignment: Alignment.center,
+          child: SizedBox(
+            width: scanAreaSize,
+            height: scanAreaSize,
+            child: CustomPaint(
+              painter: _CornerPainter(),
+            ),
+          ),
+        ),
+        // Label
+        Positioned(
+          bottom: 40,
+          left: 0,
+          right: 0,
+          child: Text(
+            'Pointez la caméra vers un code-barre',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 14,
+              shadows: [Shadow(blurRadius: 4, color: Colors.black54)],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _CornerPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = AppColors.yellow
+      ..strokeWidth = 4
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+
+    const corner = 24.0;
+
+    // Top-left
+    canvas.drawLine(Offset(0, corner), Offset.zero, paint);
+    canvas.drawLine(Offset.zero, Offset(corner, 0), paint);
+    // Top-right
+    canvas.drawLine(Offset(size.width - corner, 0), Offset(size.width, 0), paint);
+    canvas.drawLine(Offset(size.width, 0), Offset(size.width, corner), paint);
+    // Bottom-left
+    canvas.drawLine(Offset(0, size.height - corner), Offset(0, size.height), paint);
+    canvas.drawLine(Offset(0, size.height), Offset(corner, size.height), paint);
+    // Bottom-right
+    canvas.drawLine(Offset(size.width - corner, size.height), Offset(size.width, size.height), paint);
+    canvas.drawLine(Offset(size.width, size.height), Offset(size.width, size.height - corner), paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

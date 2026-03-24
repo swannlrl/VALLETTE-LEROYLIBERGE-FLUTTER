@@ -48,6 +48,7 @@ class _HomePageState extends State<HomePage> {
         }
       }
 
+      // 1. Show cached products immediately
       final initialItems = <_HistoryItem>[];
       for (final barcode in barcodes) {
         final cached = await ProductCache.getCachedProduct(barcode);
@@ -61,28 +62,26 @@ class _HomePageState extends State<HomePage> {
         });
       }
 
-      // 2. Second pass: update each item from API one by one (to avoid rate limits)
-      for (int i = 0; i < barcodes.length; i++) {
-        final barcode = barcodes[i];
-        
-        // If we already have a success-fetched product in cache, maybe skip it to save API calls?
-        // For now, let's just fetch everything once.
-        try {
-          final result = await OpenFoodFactsAPI().getProduct(barcode);
-          ProductCache.saveProduct(result.product, result.raw);
-          
-          if (mounted && _items != null && _items!.length > i) {
-            setState(() {
-              _items![i] = _HistoryItem(barcode: barcode, product: result.product);
-            });
-          }
-        } catch (_) {
-          // If API fails (404 or rate limit), we keep what we have (cached version)
-          // No need to update state if it failed.
-        }
-        
-        // Small delay between requests to be nice to the API
-        await Future.delayed(const Duration(milliseconds: 200));
+      // 2. Refresh from API in parallel batches of 3
+      for (int batchStart = 0; batchStart < barcodes.length; batchStart += 3) {
+        final batchEnd = (batchStart + 3).clamp(0, barcodes.length);
+        final batch = barcodes.sublist(batchStart, batchEnd);
+
+        final futures = batch.asMap().entries.map((entry) async {
+          final i = batchStart + entry.key;
+          final barcode = entry.value;
+          try {
+            final result = await OpenFoodFactsAPI().getProduct(barcode);
+            await ProductCache.saveProduct(result.product, result.raw);
+            if (mounted && _items != null && _items!.length > i) {
+              setState(() {
+                _items![i] = _HistoryItem(barcode: barcode, product: result.product);
+              });
+            }
+          } catch (_) {}
+        });
+
+        await Future.wait(futures);
       }
     } catch (e) {
       if (mounted) {
@@ -123,7 +122,12 @@ class _HomePageState extends State<HomePage> {
             },
           ),
           IconButton(
-            icon: const Icon(Icons.star, color: AppColors.yellow),
+            icon: SvgPicture.asset(
+              AppVectorialImages.iconStarFilled,
+              colorFilter: const ColorFilter.mode(AppColors.yellow, BlendMode.srcIn),
+              width: 24,
+              height: 24,
+            ),
             onPressed: () => context.push('/favorites'),
           ),
           IconButton(
@@ -290,14 +294,30 @@ class _ProductCard extends StatelessWidget {
                             ),
                           errorWidget: (context, url, error) => Container(
                             color: AppColors.grey1,
-                            child: const Icon(Icons.broken_image,
-                                color: AppColors.grey2),
+                            child: Padding(
+                              padding: const EdgeInsets.all(20.0),
+                              child: SvgPicture.asset(
+                                AppVectorialImages.iconImagePlaceholderAlt,
+                                colorFilter: ColorFilter.mode(
+                                  AppColors.grey2,
+                                  BlendMode.srcIn,
+                                ),
+                              ),
+                            ),
                           ),
                         )
                       : Container(
                           color: AppColors.grey1,
-                          child:
-                              Icon(Icons.fastfood, color: AppColors.grey2),
+                          child: Padding(
+                            padding: const EdgeInsets.all(20.0),
+                            child: SvgPicture.asset(
+                              AppVectorialImages.iconImagePlaceholder,
+                              colorFilter: ColorFilter.mode(
+                                AppColors.grey2,
+                                BlendMode.srcIn,
+                              ),
+                            ),
+                          ),
                         ),
                 ),
               ),
@@ -369,26 +389,42 @@ class _NutriscoreBadge extends StatelessWidget {
 
     if (label == null) return const SizedBox.shrink();
 
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 14,
-          height: 14,
-          decoration: BoxDecoration(
-            color: color,
-            shape: BoxShape.circle,
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            decoration: BoxDecoration(
+              color: color,
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: Text(
+              label,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+              ),
+            ),
           ),
-        ),
-        const SizedBox(width: 6),
-        Text(
-          'Nutriscore : $label',
-          style: TextStyle(
-            color: AppColors.grey3,
-            fontSize: 13,
+          const SizedBox(width: 8),
+          Text(
+            'Nutri-Score',
+            style: TextStyle(
+              color: color,
+              fontWeight: FontWeight.bold,
+              fontSize: 12,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

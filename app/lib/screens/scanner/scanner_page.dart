@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:simple_barcode_scanner/simple_barcode_scanner.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:formation_flutter/res/app_vectorial_images.dart';
+import 'package:formation_flutter/res/app_colors.dart';
 
 class ScannerPage extends StatefulWidget {
   const ScannerPage({super.key});
@@ -10,78 +13,138 @@ class ScannerPage extends StatefulWidget {
 }
 
 class _ScannerPageState extends State<ScannerPage> {
-  final MobileScannerController _controller = MobileScannerController(
-    formats: const [
-      BarcodeFormat.ean13,
-      BarcodeFormat.ean8,
-      BarcodeFormat.upcA,
-      BarcodeFormat.upcE,
-      BarcodeFormat.code128,
-      BarcodeFormat.qrCode,
-    ],
-    detectionSpeed: DetectionSpeed.noDuplicates,
-  );
-  bool _hasScanned = false;
+  final _barcodeController = TextEditingController();
 
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  void _onDetect(BarcodeCapture capture) {
-    if (_hasScanned) return;
-    final barcode = capture.barcodes.firstOrNull;
-    if (barcode == null || barcode.rawValue == null) return;
-
-    _hasScanned = true;
-    context.push('/product', extra: barcode.rawValue!);
-
-    // Permettre un nouveau scan en revenant sur cette page
-    Future.delayed(const Duration(seconds: 1), () {
-      if (mounted) _hasScanned = false;
-    });
+  void _onManualSubmit() {
+    final code = _barcodeController.text.trim();
+    if (code.isEmpty) return;
+    context.push('/product', extra: code);
   }
 
   @override
   Widget build(BuildContext context) {
-    final scanWindow = Rect.fromCenter(
-      center: Offset(
-        MediaQuery.of(context).size.width / 2,
-        MediaQuery.of(context).size.height / 2,
-      ),
-      width: 280,
-      height: 180,
-    );
-
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: SvgPicture.asset(
+            AppVectorialImages.iconBack,
+            colorFilter: const ColorFilter.mode(AppColors.blueDark, BlendMode.srcIn),
+            width: 24,
+          ),
+          onPressed: () => context.pop(),
+        ),
         title: const Text('Scanner un produit'),
       ),
-      body: Stack(
+      body: Column(
         children: [
-          MobileScanner(
-            controller: _controller,
-            onDetect: _onDetect,
-            scanWindow: scanWindow,
-            fit: BoxFit.cover,
+          // Manual barcode input
+          Container(
+            padding: const EdgeInsets.all(16),
+            color: AppColors.grey1,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Entrez le code-barre manuellement :',
+                  style: TextStyle(
+                    color: AppColors.blueDark,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 15,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _barcodeController,
+                        keyboardType: TextInputType.number,
+                        decoration: InputDecoration(
+                          hintText: 'Ex: 3017620422003',
+                          filled: true,
+                          fillColor: AppColors.white,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 14),
+                        ),
+                        onSubmitted: (_) => _onManualSubmit(),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    SizedBox(
+                      height: 48,
+                      child: ElevatedButton(
+                        onPressed: _onManualSubmit,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.yellow,
+                          foregroundColor: AppColors.blueDark,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: const Text(
+                          'Rechercher',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
-          // SvgPicture ou Container pour l'overlay
-          CustomPaint(
-            painter: _ScannerOverlayPainter(scanWindow: scanWindow),
-          ),
-          const Positioned(
-            bottom: 40,
-            left: 0,
-            right: 0,
-            child: Text(
-              'Alignez le code-barre dans le cadre\nÉvitez les reflets sur l\'écran',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Colors.white,
-                backgroundColor: Colors.black54,
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
+
+          // Camera Launch Button
+          Expanded(
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SvgPicture.asset(
+                    AppVectorialImages.iconBasket,
+                    width: 120,
+                    height: 120,
+                    colorFilter: const ColorFilter.mode(
+                      AppColors.grey2,
+                      BlendMode.srcIn,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  const Text(
+                    'Utilisez la caméra de votre appareil\npour scanner un code-barre.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: AppColors.grey3,
+                      fontSize: 16,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton.icon(
+                    onPressed: () async {
+                      final router = GoRouter.of(context);
+                      final res = await SimpleBarcodeScanner.scanBarcode(
+                        context,
+                        lineColor: '#ff6666',
+                        cancelButtonText: 'Annuler',
+                        isShowFlashIcon: true,
+                      );
+                      if (!mounted) return;
+                      if (res is String && res != '-1' && res.isNotEmpty) {
+                        router.push('/product', extra: res);
+                      }
+                    },
+                    icon: const Icon(Icons.camera_alt),
+                    label: const Text('Ouvrir le scanner'),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                      textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -89,32 +152,4 @@ class _ScannerPageState extends State<ScannerPage> {
       ),
     );
   }
-}
-
-class _ScannerOverlayPainter extends CustomPainter {
-  final Rect scanWindow;
-  _ScannerOverlayPainter({required this.scanWindow});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final backgroundPath = Path()..addRect(Rect.fromLTWH(0, 0, size.width, size.height));
-    final cutoutPath = Path()..addRRect(RRect.fromRectAndRadius(scanWindow, const Radius.circular(12)));
-    
-    final paint = Paint()
-      ..color = Colors.black.withOpacity(0.5)
-      ..style = PaintingStyle.fill;
-    
-    final combinedPath = Path.combine(PathOperation.difference, backgroundPath, cutoutPath);
-    canvas.drawPath(combinedPath, paint);
-
-    final borderPaint = Paint()
-      ..color = Colors.yellow
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 3;
-    
-    canvas.drawRRect(RRect.fromRectAndRadius(scanWindow, const Radius.circular(12)), borderPaint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

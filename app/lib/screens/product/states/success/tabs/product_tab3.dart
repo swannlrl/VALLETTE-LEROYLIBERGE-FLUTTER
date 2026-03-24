@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:formation_flutter/l10n/app_localizations.dart';
 import 'package:formation_flutter/model/product.dart';
 import 'package:formation_flutter/res/app_colors.dart';
+import 'package:formation_flutter/res/app_vectorial_images.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
@@ -43,7 +45,13 @@ class ProductTab3 extends StatelessWidget {
     rows.add(
       TableRow(
         children: <Widget>[
-          TableCell(child: SizedBox.shrink()),
+          TableCell(
+            child: SvgPicture.asset(
+              AppVectorialImages.iconNutritionPie,
+              colorFilter: ColorFilter.mode(AppColors.blue, BlendMode.srcIn),
+              width: 24,
+            ),
+          ),
           _NutritionFactsValue(
             text: localizations.product_nutrition_facts_per_100g,
           ),

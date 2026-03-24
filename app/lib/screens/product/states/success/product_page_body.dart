@@ -3,7 +3,6 @@ import 'package:formation_flutter/l10n/app_localizations.dart';
 import 'package:formation_flutter/model/product.dart';
 import 'package:formation_flutter/res/app_colors.dart';
 import 'package:formation_flutter/res/app_icons.dart';
-import 'package:formation_flutter/screens/product/product_fetcher.dart';
 import 'package:formation_flutter/screens/product/rappel_fetcher.dart';
 import 'package:formation_flutter/screens/product/rappel_banner.dart';
 import 'package:formation_flutter/screens/product/states/success/product_header.dart';
@@ -11,6 +10,7 @@ import 'package:formation_flutter/screens/product/states/success/tabs/product_ta
 import 'package:formation_flutter/screens/product/states/success/tabs/product_tab1.dart';
 import 'package:formation_flutter/screens/product/states/success/tabs/product_tab2.dart';
 import 'package:formation_flutter/screens/product/states/success/tabs/product_tab3.dart';
+import 'package:formation_flutter/screens/product/states/success/tabs/product_tab_recalls.dart';
 import 'package:provider/provider.dart';
 
 class ProductPageBody extends StatefulWidget {
@@ -110,6 +110,10 @@ class _ProductPageBodyState extends State<ProductPageBody> {
           offstage: _tab != ProductDetailsCurrentTab.nutritionalValues,
           child: ProductTab3(),
         ),
+        Offstage(
+          offstage: _tab != ProductDetailsCurrentTab.recalls,
+          child: const ProductTabRecalls(),
+        ),
       ],
     );
   }
@@ -119,7 +123,8 @@ enum ProductDetailsCurrentTab {
   summary(AppIcons.tab_barcode),
   info(AppIcons.tab_fridge),
   nutrition(AppIcons.tab_nutrition),
-  nutritionalValues(AppIcons.tab_array);
+  nutritionalValues(AppIcons.tab_array),
+  recalls(Icons.warning_amber_rounded);
 
   const ProductDetailsCurrentTab(this.icon);
 
@@ -132,5 +137,6 @@ enum ProductDetailsCurrentTab {
       appLocalizations.product_tab_nutrition,
     ProductDetailsCurrentTab.nutritionalValues =>
       appLocalizations.product_tab_nutrition_facts,
+    ProductDetailsCurrentTab.recalls => 'Rappels',
   };
 }

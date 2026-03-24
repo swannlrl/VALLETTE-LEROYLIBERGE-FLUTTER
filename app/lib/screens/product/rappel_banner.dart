@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pocketbase/pocketbase.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:formation_flutter/res/app_vectorial_images.dart';
 
 class RappelBanner extends StatelessWidget {
   const RappelBanner({super.key, required this.record});
@@ -20,7 +22,11 @@ class RappelBanner extends StatelessWidget {
         ),
         child: Row(
           children: [
-            const Icon(Icons.warning_amber_rounded, color: Color(0xFFA60000)),
+            SvgPicture.asset(
+              AppVectorialImages.iconRappelBanner,
+              colorFilter: const ColorFilter.mode(Color(0xFFA60000), BlendMode.srcIn),
+              width: 24,
+            ),
             const SizedBox(width: 12),
             const Expanded(
               child: Text(

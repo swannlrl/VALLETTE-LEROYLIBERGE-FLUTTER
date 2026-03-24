@@ -24,7 +24,8 @@ dependencies:
   http: ^1.6.0
   pocketbase: ^0.23.2
   url_launcher: ^6.2.0
-  mobile_scanner: ^6.0.2
+  simple_barcode_scanner: ^0.2.2
+  openfoodfacts: ^3.0.1
   share_plus: ^10.1.4
   shared_preferences: ^2.5.4
   cached_network_image: ^3.4.1

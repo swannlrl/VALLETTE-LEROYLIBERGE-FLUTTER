@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:formation_flutter/api/open_food_facts_api.dart';
 import 'package:formation_flutter/api/product_cache.dart';
 import 'package:formation_flutter/api/pocketbase_api.dart';
 import 'package:formation_flutter/model/product.dart';
 import 'package:formation_flutter/res/app_colors.dart';
+import 'package:formation_flutter/res/app_vectorial_images.dart';
 import 'package:go_router/go_router.dart';
 
 class FavoritesPage extends StatefulWidget {
@@ -52,18 +54,26 @@ class _FavoritesPageState extends State<FavoritesPage> {
         });
       }
 
-      // Refresh from API
-      for (int i = 0; i < barcodes.length; i++) {
-        final barcode = barcodes[i];
-        try {
-          final result = await OpenFoodFactsAPI().getProduct(barcode);
-          await ProductCache.saveProduct(result.product, result.raw);
-          if (mounted && _items != null && _items!.length > i) {
-            setState(() {
-              _items![i] = _FavItem(barcode: barcode, product: result.product);
-            });
-          }
-        } catch (_) {}
+      // Refresh from API in parallel batches of 3
+      for (int batchStart = 0; batchStart < barcodes.length; batchStart += 3) {
+        final batchEnd = (batchStart + 3).clamp(0, barcodes.length);
+        final batch = barcodes.sublist(batchStart, batchEnd);
+
+        final futures = batch.asMap().entries.map((entry) async {
+          final i = batchStart + entry.key;
+          final barcode = entry.value;
+          try {
+            final result = await OpenFoodFactsAPI().getProduct(barcode);
+            await ProductCache.saveProduct(result.product, result.raw);
+            if (mounted && _items != null && _items!.length > i) {
+              setState(() {
+                _items![i] = _FavItem(barcode: barcode, product: result.product);
+              });
+            }
+          } catch (_) {}
+        });
+
+        await Future.wait(futures);
       }
     } catch (e) {
       if (mounted) {
@@ -81,7 +91,11 @@ class _FavoritesPageState extends State<FavoritesPage> {
       backgroundColor: AppColors.white,
       appBar: AppBar(
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: AppColors.blueDark),
+          icon: SvgPicture.asset(
+            AppVectorialImages.iconBack,
+            colorFilter: ColorFilter.mode(AppColors.blueDark, BlendMode.srcIn),
+            width: 24,
+          ),
           onPressed: () => context.pop(),
         ),
         title: Text(
@@ -193,13 +207,30 @@ class _FavProductCard extends StatelessWidget {
                             ),
                           errorWidget: (context, url, error) => Container(
                             color: AppColors.grey1,
-                            child: const Icon(Icons.broken_image,
-                                color: AppColors.grey2),
+                            child: Padding(
+                              padding: const EdgeInsets.all(20.0),
+                              child: SvgPicture.asset(
+                                AppVectorialImages.iconImagePlaceholderAlt,
+                                colorFilter: ColorFilter.mode(
+                                  AppColors.grey2,
+                                  BlendMode.srcIn,
+                                ),
+                              ),
+                            ),
                           ),
                         )
                       : Container(
                           color: AppColors.grey1,
-                          child: Icon(Icons.fastfood, color: AppColors.grey2),
+                          child: Padding(
+                            padding: const EdgeInsets.all(20.0),
+                            child: SvgPicture.asset(
+                              AppVectorialImages.iconBasketGrey,
+                              colorFilter: ColorFilter.mode(
+                                AppColors.grey2,
+                                BlendMode.srcIn,
+                              ),
+                            ),
+                          ),
                         ),
                 ),
               ),
@@ -269,27 +300,43 @@ class _NutriscoreBadge extends StatelessWidget {
     };
 
     if (label == null) return const SizedBox.shrink();
-
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 14,
-          height: 14,
-          decoration: BoxDecoration(
-            color: color,
-            shape: BoxShape.circle,
+    
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            decoration: BoxDecoration(
+              color: color,
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: Text(
+              label,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+              ),
+            ),
           ),
-        ),
-        const SizedBox(width: 6),
-        Text(
-          'Nutriscore : $label',
-          style: TextStyle(
-            color: AppColors.grey3,
-            fontSize: 13,
+          const SizedBox(width: 8),
+          Text(
+            'Nutri-Score',
+            style: TextStyle(
+              color: color,
+              fontWeight: FontWeight.bold,
+              fontSize: 12,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

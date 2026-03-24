@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:pocketbase/pocketbase.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:formation_flutter/res/app_vectorial_images.dart';
+import 'package:formation_flutter/res/app_colors.dart';
 
 class RappelDetailPage extends StatelessWidget {
   const RappelDetailPage({super.key, required this.record});
@@ -27,6 +30,14 @@ class RappelDetailPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: SvgPicture.asset(
+            AppVectorialImages.iconBack,
+            colorFilter: const ColorFilter.mode(AppColors.blueDark, BlendMode.srcIn),
+            width: 24,
+          ),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
         title: const Text(
           'Fiche de rappel',
           style: TextStyle(fontWeight: FontWeight.bold),
@@ -87,8 +98,11 @@ class RappelDetailPage extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.warning_amber_rounded,
-                      color: Color(0xFFA60000)),
+                  SvgPicture.asset(
+                    AppVectorialImages.iconRappelBanner,
+                    colorFilter: const ColorFilter.mode(Color(0xFFA60000), BlendMode.srcIn),
+                    width: 24,
+                  ),
                   const SizedBox(width: 8),
                   const Expanded(
                     child: Text(
@@ -108,7 +122,7 @@ class RappelDetailPage extends StatelessWidget {
             if (dateDebut.isNotEmpty || dateFin.isNotEmpty)
               _Section(
                 title: 'Dates de commercialisation',
-                icon: Icons.calendar_today,
+                iconData: Icons.calendar_today,
                 child: Text(
                   'Du $dateDebut au $dateFin',
                   style: const TextStyle(fontSize: 15),
@@ -119,7 +133,7 @@ class RappelDetailPage extends StatelessWidget {
             if (distributeurs.isNotEmpty)
               _Section(
                 title: 'Distributeurs',
-                icon: Icons.store,
+                iconData: Icons.store,
                 child: Text(
                   distributeurs,
                   style: const TextStyle(fontSize: 15),
@@ -130,7 +144,7 @@ class RappelDetailPage extends StatelessWidget {
             if (zoneGeo.isNotEmpty)
               _Section(
                 title: 'Zone géographique de vente',
-                icon: Icons.location_on,
+                icon: AppVectorialImages.iconLocation,
                 child: Text(
                   zoneGeo,
                   style: const TextStyle(fontSize: 15),
@@ -141,7 +155,7 @@ class RappelDetailPage extends StatelessWidget {
             if (motif.isNotEmpty)
               _Section(
                 title: 'Motif du rappel',
-                icon: Icons.report_problem,
+                iconData: Icons.report_problem,
                 child: Text(
                   motif,
                   style: const TextStyle(fontSize: 15),
@@ -152,7 +166,7 @@ class RappelDetailPage extends StatelessWidget {
             if (risques.isNotEmpty)
               _Section(
                 title: 'Risques encourus',
-                icon: Icons.health_and_safety,
+                iconData: Icons.health_and_safety,
                 child: Text(
                   risques,
                   style: const TextStyle(fontSize: 15),
@@ -163,7 +177,7 @@ class RappelDetailPage extends StatelessWidget {
             if (infosComp.isNotEmpty)
               _Section(
                 title: 'Informations complémentaires',
-                icon: Icons.info_outline,
+                iconData: Icons.info_outline,
                 child: Text(
                   infosComp,
                   style: const TextStyle(fontSize: 15),
@@ -174,7 +188,7 @@ class RappelDetailPage extends StatelessWidget {
             if (conduite.isNotEmpty)
               _Section(
                 title: 'Conduite à tenir',
-                icon: Icons.checklist,
+                iconData: Icons.checklist,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: conduite
@@ -239,15 +253,17 @@ class RappelDetailPage extends StatelessWidget {
 }
 
 class _Section extends StatelessWidget {
+  final String title;
+  final String? icon;
+  final IconData? iconData;
+  final Widget child;
+  
   const _Section({
     required this.title,
-    required this.icon,
+    this.icon,
+    this.iconData,
     required this.child,
   });
-
-  final String title;
-  final IconData icon;
-  final Widget child;
 
   @override
   Widget build(BuildContext context) {
@@ -258,7 +274,15 @@ class _Section extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(icon, size: 20, color: Colors.grey[700]),
+              if (icon != null)
+                SvgPicture.asset(
+                  icon!,
+                  width: 20,
+                  height: 20,
+                  colorFilter: ColorFilter.mode(Colors.grey[700]!, BlendMode.srcIn),
+                )
+              else if (iconData != null)
+                Icon(iconData!, size: 20, color: Colors.grey[700]),
               const SizedBox(width: 8),
               Text(
                 title,

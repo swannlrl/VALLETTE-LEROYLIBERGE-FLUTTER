@@ -2,7 +2,10 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:formation_flutter/model/product.dart';
+import 'package:formation_flutter/res/app_colors.dart';
+import 'package:formation_flutter/res/app_vectorial_images.dart';
 import 'package:formation_flutter/res/app_theme_extension.dart';
 import 'package:provider/provider.dart';
 import 'package:sliver_tools/sliver_tools.dart';
@@ -69,10 +72,44 @@ class _ProductHeaderDelegate extends SliverPersistentHeaderDelegate {
                   width: double.infinity,
                   fit: BoxFit.cover,
                   colorBlendMode: BlendMode.srcATop,
-                  placeholder: (context, url) => const ColoredBox(color: Colors.white),
-                  errorWidget: (context, url, error) => const ColoredBox(color: Colors.white),
+                  placeholder: (context, url) => Container(
+                    color: AppColors.grey1,
+                    child: const Center(
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: AppColors.blueDark,
+                      ),
+                    ),
+                  ),
+                  errorWidget: (context, url, error) => Container(
+                    color: AppColors.grey1,
+                    child: Center(
+                      child: SvgPicture.asset(
+                        AppVectorialImages.iconImagePlaceholderAlt,
+                        width: 64,
+                        height: 64,
+                        colorFilter: ColorFilter.mode(
+                          AppColors.grey2,
+                          BlendMode.srcIn,
+                        ),
+                      ),
+                    ),
+                  ),
                 )
-              : const ColoredBox(color: Colors.white),
+              : Container(
+                  color: AppColors.grey1,
+                  child: Center(
+                    child: SvgPicture.asset(
+                      AppVectorialImages.iconImagePlaceholder,
+                      width: 64,
+                      height: 64,
+                      colorFilter: ColorFilter.mode(
+                        AppColors.grey2,
+                        BlendMode.srcIn,
+                      ),
+                    ),
+                  ),
+                ),
         ),
         PositionedDirectional(
           top: max(maxHeight - shrinkOffset - 16.0, 0.0),

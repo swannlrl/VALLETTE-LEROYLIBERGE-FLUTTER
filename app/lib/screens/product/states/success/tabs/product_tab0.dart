@@ -152,9 +152,55 @@ class _NovaGroup extends StatelessWidget {
           style: context.theme.title3,
         ),
         const SizedBox(height: 5.0),
-        Text(_findLabel(), style: const TextStyle(color: AppColors.grey2)),
+        Row(
+          children: [
+            if (novaScore != ProductNovaScore.unknown)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: _findColor(),
+                  borderRadius: BorderRadius.circular(5),
+                ),
+                child: Text(
+                  _findLevelString(),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            if (novaScore != ProductNovaScore.unknown)
+              const SizedBox(width: 8.0),
+            Expanded(
+              child: Text(
+                _findLabel(),
+                style: const TextStyle(color: AppColors.grey2),
+              ),
+            ),
+          ],
+        ),
       ],
     );
+  }
+
+  Color _findColor() {
+    return switch (novaScore) {
+      ProductNovaScore.group1 => AppColors.nova1,
+      ProductNovaScore.group2 => AppColors.nova2,
+      ProductNovaScore.group3 => AppColors.nova3,
+      ProductNovaScore.group4 => AppColors.nova4,
+      ProductNovaScore.unknown => AppColors.grey2,
+    };
+  }
+
+  String _findLevelString() {
+    return switch (novaScore) {
+      ProductNovaScore.group1 => '1',
+      ProductNovaScore.group2 => '2',
+      ProductNovaScore.group3 => '3',
+      ProductNovaScore.group4 => '4',
+      ProductNovaScore.unknown => '?',
+    };
   }
 
   String _findLabel() {
@@ -177,6 +223,8 @@ class _GreenScore extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final icon = _findIcon();
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -188,7 +236,10 @@ class _GreenScore extends StatelessWidget {
         const SizedBox(height: 5.0),
         Row(
           children: <Widget>[
-            Icon(_findIcon(), color: _findIconColor()),
+            if (icon != null)
+              Icon(icon, color: _findIconColor(), size: 42.0)
+            else
+              Text('Non renseigné', style: TextStyle(color: AppColors.grey2)),
             const SizedBox(width: 10.0),
             Expanded(
               child: Text(
@@ -202,7 +253,7 @@ class _GreenScore extends StatelessWidget {
     );
   }
 
-  IconData _findIcon() {
+  IconData? _findIcon() {
     return switch (greenScore) {
       ProductGreenScore.APlus => AppIcons.ecoscore_a_plus,
       ProductGreenScore.A => AppIcons.ecoscore_a,
@@ -211,7 +262,7 @@ class _GreenScore extends StatelessWidget {
       ProductGreenScore.D => AppIcons.ecoscore_d,
       ProductGreenScore.E => AppIcons.ecoscore_e,
       ProductGreenScore.F => AppIcons.ecoscore_f,
-      ProductGreenScore.unknown => AppIcons.ecoscore_e,
+      ProductGreenScore.unknown => null,
     };
   }
 
@@ -224,7 +275,7 @@ class _GreenScore extends StatelessWidget {
       ProductGreenScore.D => AppColors.greenScoreD,
       ProductGreenScore.E => AppColors.greenScoreE,
       ProductGreenScore.F => AppColors.greenScoreF,
-      ProductGreenScore.unknown => Colors.transparent,
+      ProductGreenScore.unknown => AppColors.grey2,
     };
   }
 

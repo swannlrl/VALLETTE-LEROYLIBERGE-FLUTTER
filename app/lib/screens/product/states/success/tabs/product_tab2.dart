@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:formation_flutter/l10n/app_localizations.dart';
 import 'package:formation_flutter/model/product.dart';
 import 'package:formation_flutter/res/app_colors.dart';
+import 'package:formation_flutter/res/app_vectorial_images.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 
 /// Onglet Nutrition : 4 blocs de niveaux nutritionnels avec couleurs
@@ -89,28 +91,28 @@ class _NutrientLevelCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final Color color;
     final String levelText;
-    final IconData icon;
+    final String icon;
 
     switch (level.toLowerCase()) {
       case 'low':
         color = AppColors.nutrientLevelLow;
         levelText = 'Faible quantité';
-        icon = Icons.circle;
+        icon = AppVectorialImages.iconNutritionPie;
         break;
       case 'moderate':
         color = AppColors.nutrientLevelModerate;
         levelText = 'Quantité modérée';
-        icon = Icons.circle;
+        icon = AppVectorialImages.iconNutritionPie;
         break;
       case 'high':
         color = AppColors.nutrientLevelHigh;
         levelText = 'Quantité élevée';
-        icon = Icons.circle;
+        icon = AppVectorialImages.iconNutritionPie;
         break;
       default:
         color = AppColors.grey2;
         levelText = 'Non renseigné';
-        icon = Icons.circle_outlined;
+        icon = AppVectorialImages.iconNutritionPie;
     }
 
     return Container(
@@ -123,7 +125,12 @@ class _NutrientLevelCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(icon, color: color, size: 16),
+          SvgPicture.asset(
+            icon,
+            width: 16,
+            height: 16,
+            colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
+          ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(

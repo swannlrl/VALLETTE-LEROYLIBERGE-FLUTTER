@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:formation_flutter/l10n/app_localizations.dart';
 import 'package:formation_flutter/model/product.dart';
 import 'package:formation_flutter/res/app_colors.dart';
+import 'package:formation_flutter/res/app_vectorial_images.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 
 /// Onglet Caractéristiques : Ingrédients, Allergènes, Additifs
@@ -22,7 +24,10 @@ class ProductTab1 extends StatelessWidget {
         children: [
           // ── Ingrédients ──
           if (product.ingredients != null && product.ingredients!.isNotEmpty) ...[
-            _SectionTitle(title: localizations.product_tab_properties),
+            _SectionTitle(
+              title: localizations.product_tab_properties,
+              icon: AppVectorialImages.iconLocation,
+            ),
             const SizedBox(height: 8),
             ...product.ingredients!.map(
               (ingredient) => Padding(
@@ -65,7 +70,10 @@ class ProductTab1 extends StatelessWidget {
 
           // ── Traces éventuelles ──
           if (product.traces != null && product.traces!.isNotEmpty) ...[
-            const _SectionTitle(title: 'Traces éventuelles'),
+            const _SectionTitle(
+              title: 'Traces éventuelles',
+              icon: AppVectorialImages.iconStarOrange,
+            ),
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,
@@ -142,18 +150,32 @@ class ProductTab1 extends StatelessWidget {
 }
 
 class _SectionTitle extends StatelessWidget {
-  const _SectionTitle({required this.title});
+  const _SectionTitle({required this.title, this.icon});
   final String title;
+  final String? icon;
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      title,
-      style: const TextStyle(
-        fontSize: 18,
-        fontWeight: FontWeight.bold,
-        color: AppColors.blue,
-      ),
+    return Row(
+      children: [
+        if (icon != null) ...[
+          SvgPicture.asset(
+            icon!,
+            width: 18,
+            height: 18,
+            colorFilter: const ColorFilter.mode(AppColors.blue, BlendMode.srcIn),
+          ),
+          const SizedBox(width: 8),
+        ],
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: AppColors.blue,
+          ),
+        ),
+      ],
     );
   }
 }

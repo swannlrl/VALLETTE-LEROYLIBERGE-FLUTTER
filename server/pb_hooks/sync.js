@@ -15,15 +15,23 @@ module.exports = function() {
 
         for (var i = 0; i < rappels.length; i++) {
             var item = rappels[i];
-            var gtin = String(item.gtin || "");
-            if (!gtin) continue;
+            var rawGtin = String(item.gtin || "").replace(/\s/g, "");
+            if (!rawGtin || rawGtin === "0") continue;
 
-            // Chercher un rappel existant par gtin pour ne pas dupliquer
+            // Normaliser en EAN-13 (13 chiffres avec zéros initiaux si besoin)
+            var gtin = rawGtin.length < 13 ? rawGtin.padStart(13, "0") : rawGtin;
+
+            // Chercher par le gtin normalisé, puis par l'ancien format (sans padding)
             var record = null;
             try {
-                // $app.findFirstRecordByData("rappels", "gtin", gtin) est plus sûr
                 record = $app.findFirstRecordByData("rappels", "gtin", gtin);
-            } catch (_) { }
+            } catch (_) {}
+            if (!record && gtin !== rawGtin) {
+                // Fallback : l'entrée existante a peut-être été stockée sans padding
+                try {
+                    record = $app.findFirstRecordByData("rappels", "gtin", rawGtin);
+                } catch (_) {}
+            }
 
             if (!record) record = new Record(collRappels, {});
 

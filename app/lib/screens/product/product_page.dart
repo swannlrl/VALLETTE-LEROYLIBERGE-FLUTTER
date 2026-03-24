@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:formation_flutter/api/pocketbase_api.dart';
-import 'package:formation_flutter/res/app_icons.dart';
+import 'package:formation_flutter/res/app_vectorial_images.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:formation_flutter/screens/product/product_fetcher.dart';
 import 'package:formation_flutter/screens/product/favorite_notifier.dart';
 import 'package:formation_flutter/screens/product/states/empty/product_page_empty.dart';
@@ -87,8 +88,14 @@ class _ProductPageState extends State<ProductPage> {
                         customBorder: const CircleBorder(),
                         child: Padding(
                           padding: const EdgeInsets.all(12.0),
-                          child:
-                              Icon(AppIcons.close, color: Colors.grey[800]),
+                          child: SvgPicture.asset(
+                            AppVectorialImages.iconBack,
+                            colorFilter: ColorFilter.mode(
+                              Colors.grey[800]!,
+                              BlendMode.srcIn,
+                            ),
+                            width: 24,
+                          ),
                         ),
                       ),
                     ),
@@ -127,13 +134,18 @@ class _ProductPageState extends State<ProductPage> {
                             customBorder: const CircleBorder(),
                             child: Padding(
                               padding: const EdgeInsets.all(12.0),
-                              child: Icon(
+                              child: SvgPicture.asset(
                                 fav.isFavorite
-                                    ? Icons.star
-                                    : Icons.star_border,
-                                color: fav.isFavorite
-                                    ? Colors.amber
-                                    : Colors.grey[800],
+                                    ? AppVectorialImages.iconStarFilled
+                                    : AppVectorialImages.iconStarEmpty,
+                                colorFilter: ColorFilter.mode(
+                                  fav.isFavorite
+                                      ? Colors.amber
+                                      : Colors.grey[800]!,
+                                  BlendMode.srcIn,
+                                ),
+                                width: 24,
+                                height: 24,
                               ),
                             ),
                           ),

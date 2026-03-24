@@ -20,14 +20,41 @@ class RappelFetcher extends ChangeNotifier {
 
   Future<void> _load() async {
     try {
-      // Requête directe sur la collection unifiée "rappels"
-      final record = await pb.collection('rappels').getFirstListItem(
-        'gtin = "$_barcode"',
-      );
-      state = RappelFound(record);
+      // Normaliser le barcode en EAN-13 (même format que le serveur)
+      final padded = _barcode.padLeft(13, '0');
+      final unpadded = _barcode.replaceFirst(RegExp(r'^0+'), '');
+
+      RecordModel? record;
+
+      // Essayer d'abord avec le barcode tel quel
+      try {
+        record = await pb.collection('rappels').getFirstListItem(
+          'gtin = "$_barcode"',
+        );
+      } catch (_) {}
+
+      // Si non trouvé, essayer avec le padding EAN-13
+      if (record == null && padded != _barcode) {
+        try {
+          record = await pb.collection('rappels').getFirstListItem(
+            'gtin = "$padded"',
+          );
+        } catch (_) {}
+      }
+
+      // Si toujours non trouvé, essayer sans zéros initiaux
+      if (record == null && unpadded != _barcode) {
+        try {
+          record = await pb.collection('rappels').getFirstListItem(
+            'gtin = "$unpadded"',
+          );
+        } catch (_) {}
+      }
+
+      state = record != null ? RappelFound(record) : RappelNotFound();
     } catch (e) {
       state = RappelNotFound();
     }
-    notifyListeners(); // Prévient les widgets du changement
+    notifyListeners();
   }
 }

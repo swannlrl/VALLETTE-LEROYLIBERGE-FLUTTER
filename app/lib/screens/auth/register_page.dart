@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:formation_flutter/api/pocketbase_api.dart';
 import 'package:formation_flutter/res/app_colors.dart';
+import 'package:formation_flutter/res/app_vectorial_images.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
 class RegisterPage extends StatefulWidget {
@@ -13,12 +15,12 @@ class RegisterPage extends StatefulWidget {
 class _RegisterPageState extends State<RegisterPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _confirmPasswordController = TextEditingController();
+  final _confirmController = TextEditingController();
   bool _isLoading = false;
   String? _error;
 
   Future<void> _register() async {
-    if (_passwordController.text != _confirmPasswordController.text) {
+    if (_passwordController.text != _confirmController.text) {
       setState(() => _error = 'Les mots de passe ne correspondent pas');
       return;
     }
@@ -32,7 +34,7 @@ class _RegisterPageState extends State<RegisterPage> {
       await pb.collection('users').create(body: {
         'email': _emailController.text.trim(),
         'password': _passwordController.text,
-        'passwordConfirm': _confirmPasswordController.text,
+        'passwordConfirm': _confirmController.text,
       });
 
       // Auto-login after registration
@@ -53,7 +55,7 @@ class _RegisterPageState extends State<RegisterPage> {
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
-    _confirmPasswordController.dispose();
+    _confirmController.dispose();
     super.dispose();
   }
 
@@ -61,123 +63,144 @@ class _RegisterPageState extends State<RegisterPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.white,
-      body: SafeArea(
-        child: Center(
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 400),
           child: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 32),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
+                const SizedBox(height: 48),
+                SvgPicture.asset(
+                  AppVectorialImages.iconUserEdit,
+                  width: 80,
+                  height: 80,
+                  colorFilter: const ColorFilter.mode(AppColors.green, BlendMode.srcIn),
+                ),
+                const SizedBox(height: 24),
                 Text(
                   'Inscription',
                   style: TextStyle(
                     color: AppColors.blueDark,
-                    fontSize: 28,
+                    fontSize: 32,
                     fontWeight: FontWeight.bold,
                     fontFamily: 'Avenir',
                   ),
                 ),
-                const SizedBox(height: 48),
-                // Email field
+                const SizedBox(height: 40),
                 TextField(
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
                   decoration: InputDecoration(
                     hintText: 'Adresse email',
-                    prefixIcon: Icon(Icons.mail_outline, color: AppColors.grey2),
+                    prefixIcon: Padding(
+                      padding: const EdgeInsets.all(12.0),
+                      child: SvgPicture.asset(
+                        AppVectorialImages.iconEmail,
+                        colorFilter: ColorFilter.mode(
+                          AppColors.grey2,
+                          BlendMode.srcIn,
+                        ),
+                      ),
+                    ),
                     filled: true,
                     fillColor: AppColors.grey1,
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: AppColors.grey2),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: AppColors.grey2),
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
                     ),
                   ),
                 ),
                 const SizedBox(height: 16),
-                // Password field
                 TextField(
                   controller: _passwordController,
                   obscureText: true,
                   decoration: InputDecoration(
                     hintText: 'Mot de passe',
-                    prefixIcon: Icon(Icons.lock_outline, color: AppColors.grey2),
+                    prefixIcon: Padding(
+                      padding: const EdgeInsets.all(12.0),
+                      child: SvgPicture.asset(
+                        AppVectorialImages.iconLock,
+                        colorFilter: ColorFilter.mode(
+                          AppColors.grey2,
+                          BlendMode.srcIn,
+                        ),
+                      ),
+                    ),
                     filled: true,
                     fillColor: AppColors.grey1,
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: AppColors.grey2),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: AppColors.grey2),
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
                     ),
                   ),
                 ),
                 const SizedBox(height: 16),
-                // Confirm password field
                 TextField(
-                  controller: _confirmPasswordController,
+                  controller: _confirmController,
                   obscureText: true,
                   decoration: InputDecoration(
                     hintText: 'Confirmation du mot de passe',
-                    prefixIcon: Icon(Icons.lock_outline, color: AppColors.grey2),
+                    prefixIcon: Padding(
+                      padding: const EdgeInsets.all(12.0),
+                      child: SvgPicture.asset(
+                        AppVectorialImages.iconLock,
+                        colorFilter: ColorFilter.mode(
+                          AppColors.grey2,
+                          BlendMode.srcIn,
+                        ),
+                      ),
+                    ),
                     filled: true,
                     fillColor: AppColors.grey1,
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: AppColors.grey2),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: AppColors.grey2),
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
                     ),
                   ),
                 ),
+                const SizedBox(height: 32),
+                if (_isLoading)
+                  const CircularProgressIndicator()
+                else
+                  SizedBox(
+                    width: double.infinity,
+                    height: 56,
+                    child: ElevatedButton(
+                      onPressed: _register,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.yellow,
+                        foregroundColor: AppColors.blueDark,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: const Text(
+                        'CRÉER MON COMPTE',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          letterSpacing: 1.2,
+                        ),
+                      ),
+                    ),
+                  ),
                 if (_error != null) ...[
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 16),
                   Text(_error!, style: const TextStyle(color: Colors.red)),
                 ],
-                const SizedBox(height: 32),
-                // Register button
-                SizedBox(
-                  width: double.infinity,
-                  height: 48,
-                  child: ElevatedButton(
-                    onPressed: _isLoading ? null : _register,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.yellow,
-                      foregroundColor: AppColors.blueDark,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(24),
-                      ),
-                      elevation: 0,
-                    ),
-                    child: _isLoading
-                        ? const SizedBox(
-                            width: 24,
-                            height: 24,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                'S\'inscrire',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                ),
-                              ),
-                              SizedBox(width: 8),
-                              Icon(Icons.arrow_forward, size: 20),
-                            ],
-                          ),
+                const SizedBox(height: 40),
+                IconButton(
+                  onPressed: () => context.pop(),
+                  icon: SvgPicture.asset(
+                    AppVectorialImages.iconBackCurved,
+                    colorFilter: ColorFilter.mode(AppColors.blueDark, BlendMode.srcIn),
+                    width: 32,
                   ),
                 ),
+                const SizedBox(height: 48),
               ],
             ),
           ),
